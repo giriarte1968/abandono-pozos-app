@@ -1,0 +1,11 @@
+# Caddyfile for IP-based Access
+# Escucha en el puerto 80 de cualquier interfaz
+:80 {
+    # Redirige todo el tráfico al contenedor Frontend (Streamlit)
+    reverse_proxy frontend:8501
+    
+    # Logs básicos para acceso
+    log {
+        output stdout
+    }
+}

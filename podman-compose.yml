@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # MySQL Database (Internal only)
+  mysql:
+    user: "27:27"
+    image: docker.io/library/mysql:8.0
+    # No forzamos usuario para que el entrypoint inicialice correctamente
+    environment:
+      - MYSQL_ROOT_PASSWORD=pna_root_pass
+      - MYSQL_DATABASE=pna_system
+      - MYSQL_USER=pna_user
+      - MYSQL_PASSWORD=pna_pass
+    volumes:
+      - mysql_data:/var/lib/mysql:Z
+      - ./db/migrations:/docker-entrypoint-initdb.d:Z
+    networks:
+      - pna-network
+
+  # Temporal Server (ARM64 optimized)
+  temporal:
+    image: mirror.gcr.io/temporalio/auto-setup:latest
+    user: "root"
+    env_file:
+      - .env
+    environment:
+      - DB=mysql8
+      - MYSQL_SEEDS=mysql
+      - MYSQL_USER=root
+      - MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DB=pna_system
+      - VISIBILITY_DB=pna_system_visibility
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    ports:
+      - "${TEMPORAL_EXTERNAL_PORT}:7233"
+    depends_on:
+      - mysql
+    networks:
+      - pna-network
+
+  # Temporal Web UI
+  temporal-ui:
+    image: mirror.gcr.io/temporalio/ui:latest
+    user: "1000:1000"
+    env_file:
+      - .env
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "${TEMPORAL_UI_EXTERNAL_PORT}:8080"
+    depends_on:
+      - temporal
+    networks:
+      - pna-network
+
+  # Python Worker (OCI ARM64 compliant)
+  worker:
+    build:
+      context: .
+      dockerfile: Containerfile.worker
+    user: "1000:1000"
+    env_file:
+      - .env
+    environment:
+      - TEMPORAL_HOST=${TEMPORAL_HOST}
+      - TEMPORAL_PORT=${TEMPORAL_PORT}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    depends_on:
+      - temporal
+      - mysql
+    networks:
+      - pna-network
+    volumes:
+      - ./backend:/app/backend:ro,Z
+      - ./tests:/app/tests:ro,Z
+    command: python -m backend.worker
+
+  # Streamlit Frontend (OCI ARM64 compliant)
+  frontend:
+    build:
+      context: .
+      dockerfile: Containerfile.frontend
+    user: "1000:1000"
+    env_file:
+      - .env
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    ports:
+      - "${FRONTEND_EXTERNAL_PORT}:8501"
+    depends_on:
+      - mysql
+    networks:
+      - pna-network
+    volumes:
+      - ./frontend:/app/frontend:ro,Z
+
+networks:
+  pna-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

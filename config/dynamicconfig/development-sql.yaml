@@ -1,0 +1,38 @@
+persistence:
+  defaultStore: default
+  visibilityStore: visibility
+  numHistoryShards: 1
+  datastores:
+    default:
+      sql:
+        driver: mysql8
+        host: mysql
+        port: 3306
+        database: pna_system
+        user: root
+        password: pna_root_pass
+        connectAttributes:
+          "read-only": "true"
+          "txIsolation": "READ-COMMITTED"
+    visibility:
+      sql:
+        driver: mysql8
+        host: mysql
+        port: 3306
+        database: pna_system
+        databaseNamePrefix: pna_system_visibility
+        user: root
+        password: pna_root_pass
+        connectAttributes:
+          "read-only": "true"
+          "txIsolation": "READ-COMMITTED"
+
+  history:
+    numHistoryShards: 1
+
+global:
+  membership:
+    maxJoinDuration: 30s
+  metrics:
+    prometheus:
+      address: "0.0.0.0:9090"

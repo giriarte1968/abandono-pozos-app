@@ -1,0 +1,42 @@
+# OCI-compliant Containerfile for P&A Worker
+# Multi-arch compatible (linux/amd64, linux/arm64)
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies (minimal, ARM64 compatible)
+# Use --no-install-recommends to keep image small
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first (for layer caching)
+COPY requirements.txt requirements-dev.txt ./
+
+# Install Python dependencies
+# Use --no-cache-dir and ensure pip is up to date
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-dev.txt
+
+# Copy application code
+COPY backend/ ./backend/
+COPY tests/ ./tests/
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# OCI Rootless Best Practice: Use UID 1000
+# Ensure /app ownership is correct
+RUN useradd -m -u 1000 pnauser && \
+    chown -R pnauser:pnauser /app
+
+USER 1000
+
+# Default command
+CMD ["python", "-m", "backend.worker"]

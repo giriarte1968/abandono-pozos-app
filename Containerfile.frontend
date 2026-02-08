@@ -1,0 +1,50 @@
+# OCI-compliant Containerfile for P&A Frontend (Streamlit)
+# Multi-arch compatible (linux/amd64, linux/arm64)
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY frontend/ ./frontend/
+# We need assets/services/views too if they are structured as modules
+# Given the structure found:
+# frontend/app.py
+# frontend/assets/
+# frontend/components/
+# frontend/services/
+# frontend/views/
+
+# Set Python path to find modules correctly
+ENV PYTHONPATH=/app/frontend
+
+# Expose Streamlit default port
+EXPOSE 8501
+
+# OCI Rootless Best Practice: Use UID 1000
+RUN useradd -m -u 1000 pnauser && \
+    chown -R pnauser:pnauser /app
+
+USER 1000
+
+# Streamlit specific configuration
+ENV STREAMLIT_SERVER_PORT=8501
+ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
+
+# Default command
+CMD ["streamlit", "run", "frontend/app.py"]

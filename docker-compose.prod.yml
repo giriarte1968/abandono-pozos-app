@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # Caddy: Reverse Proxy (HTTP on Port 80)
+  caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - "80:80"
+      # - "443:443" # Descomentar cuando tengas dominio
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - pna-network
+
+  # MySQL: Base de datos local (gratis)
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pna-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G # MySQL necesita al menos 512MB-1GB
+
+  # Temporal Server
+  temporal:
+    image: mirror.gcr.io/temporalio/auto-setup:latest
+    restart: always
+    environment:
+      - DB=mysql8
+      - MYSQL_SEEDS=mysql
+      - MYSQL_USER=root
+      - MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DB=${MYSQL_DATABASE:-pna_system}
+      - VISIBILITY_DB=${VISIBILITY_DB:-pna_system_visibility}
+      # Configuración dinámica básica para producción
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/production.yaml
+    volumes:
+      - ./config/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+    networks:
+      - pna-network
+    depends_on:
+      - mysql
+
+  # Temporal Web UI
+  temporal-ui:
+    image: mirror.gcr.io/temporalio/ui:latest
+    restart: always
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "8080:8080" # Acceso directo a la UI de administración
+    networks:
+      - pna-network
+    depends_on:
+      - temporal
+
+  # Worker
+  worker:
+    # Construimos localmente en el Droplet
+    build:
+      context: .
+      dockerfile: Containerfile.worker
+    restart: always
+    environment:
+      - TEMPORAL_HOST=temporal
+      - TEMPORAL_PORT=7233
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    networks:
+      - pna-network
+    depends_on:
+      - temporal
+      - mysql
+
+  # Frontend (Streamlit)
+  frontend:
+    build:
+      context: .
+      dockerfile: Containerfile.frontend
+    restart: always
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    networks:
+      - pna-network
+    depends_on:
+      - mysql
+
+networks:
+  pna-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  caddy_data:
+  caddy_config:
