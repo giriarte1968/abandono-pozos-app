@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "timestamp_utc": "2026-02-01T18:05:14.898064",
+        "timestamp_utc": "2026-02-01T18:26:04.857232",
         "id_usuario": "m.gonzalez",
         "rol_usuario": "HSE",
         "tipo_evento": "DATA_CHANGE",
@@ -12,11 +12,11 @@
         "metadata": "{\"event\": \"Campa\\u00f1a Norte Initial Load\"}",
         "ip_origen": "192.168.1.100",
         "hash_previo": "0000000000000000000000000000000000000000000000000000000000000000",
-        "hash_evento": "d9a0af4952625bfecc0ff2b88891492e133477c4cb6ce7adbcdf1e17718d8828"
+        "hash_evento": "4d676ff303f9a49ab1aa9607c09fb844672c3cb1df4edb32413cd769a7f8dc55"
     },
     {
         "id": 2,
-        "timestamp_utc": "2026-02-02T06:05:14.898064",
+        "timestamp_utc": "2026-02-02T06:26:04.857232",
         "id_usuario": "j.perez",
         "rol_usuario": "Supervisor",
         "tipo_evento": "EVIDENCE_UPLOAD",
@@ -26,12 +26,12 @@
         "estado_nuevo": "{\"file\": \"X-123_pre_work_site.jpg\", \"hash\": \"sha256:d5f...\"}",
         "metadata": "{\"desc\": \"Validaci\\u00f3n estado inicial locaci\\u00f3n\"}",
         "ip_origen": "192.168.1.101",
-        "hash_previo": "d9a0af4952625bfecc0ff2b88891492e133477c4cb6ce7adbcdf1e17718d8828",
-        "hash_evento": "6173111a97f5d4bc9854c53b2f8614261731f66d3a624c03e28197f798497bbd"
+        "hash_previo": "4d676ff303f9a49ab1aa9607c09fb844672c3cb1df4edb32413cd769a7f8dc55",
+        "hash_evento": "e1f6e9beb4c0c8a7343f6f51028973f9866dd9a42a6c8ab412d0c88fc1262a40"
     },
     {
         "id": 3,
-        "timestamp_utc": "2026-02-02T18:05:14.898064",
+        "timestamp_utc": "2026-02-02T18:26:04.857232",
         "id_usuario": "j.perez",
         "rol_usuario": "Supervisor",
         "tipo_evento": "DATA_CHANGE",
@@ -41,12 +41,12 @@
         "estado_nuevo": "{\"progreso\": 45}",
         "metadata": "{\"action\": \"Inyectando Tap\\u00f3n de Cemento #1\"}",
         "ip_origen": "192.168.1.102",
-        "hash_previo": "6173111a97f5d4bc9854c53b2f8614261731f66d3a624c03e28197f798497bbd",
-        "hash_evento": "2e99f0f9c48855364134b0a35c294ea689e7a668697cbe539b0a651ea8fed02f"
+        "hash_previo": "e1f6e9beb4c0c8a7343f6f51028973f9866dd9a42a6c8ab412d0c88fc1262a40",
+        "hash_evento": "26106572298741801b78960e5d517fcdf9b408b2665646d12cbc214c366fa899"
     },
     {
         "id": 4,
-        "timestamp_utc": "2026-02-03T06:05:14.898064",
+        "timestamp_utc": "2026-02-03T06:26:04.857232",
         "id_usuario": "j.perez",
         "rol_usuario": "Supervisor",
         "tipo_evento": "SIGNAL_SENT",
@@ -56,12 +56,12 @@
         "estado_nuevo": "{\"signal\": \"PARTE_DIARIO\", \"channel\": \"INTERNET\"}",
         "metadata": "{\"report\": \"Cementing ops 22and Feb\"}",
         "ip_origen": "192.168.1.103",
-        "hash_previo": "2e99f0f9c48855364134b0a35c294ea689e7a668697cbe539b0a651ea8fed02f",
-        "hash_evento": "742be4fae7d026cb8a30894e63fdc2f66fae323b784a930ca360e0e47454a44c"
+        "hash_previo": "26106572298741801b78960e5d517fcdf9b408b2665646d12cbc214c366fa899",
+        "hash_evento": "469c2b2752802e43df7ebcc37dbab4744bf823f29b490a7323974e0566f36a72"
     },
     {
         "id": 5,
-        "timestamp_utc": "2026-02-03T18:05:14.898064",
+        "timestamp_utc": "2026-02-03T18:26:04.857232",
         "id_usuario": "m.gonzalez",
         "rol_usuario": "HSE",
         "tipo_evento": "DATA_CHANGE",
@@ -71,12 +71,12 @@
         "estado_nuevo": "{\"workflow\": \"BLOCKED_BY_INCIDENT\"}",
         "metadata": "{\"incident_id\": \"INC-882\", \"desc\": \"Minor fluid seepage near cellar\"}",
         "ip_origen": "192.168.1.104",
-        "hash_previo": "742be4fae7d026cb8a30894e63fdc2f66fae323b784a930ca360e0e47454a44c",
-        "hash_evento": "b98d2a970d43a1e5cd69fd49b61c9a22d6ba5655141e710724e9667e4d91dc2a"
+        "hash_previo": "469c2b2752802e43df7ebcc37dbab4744bf823f29b490a7323974e0566f36a72",
+        "hash_evento": "c99bc0601c370ad644e92fb0c68726905a54e63869e3ad6d5e2ecc64f3fb63ae"
     },
     {
         "id": 6,
-        "timestamp_utc": "2026-02-04T06:05:14.898064",
+        "timestamp_utc": "2026-02-04T06:26:04.857232",
         "id_usuario": "m.gonzalez",
         "rol_usuario": "HSE",
         "tipo_evento": "EVIDENCE_UPLOAD",
@@ -86,12 +86,12 @@
         "estado_nuevo": "{\"file\": \"Z-789_leakage_cellar.jpg\", \"hash\": \"sha256:a12b...\"}",
         "metadata": "{\"desc\": \"Photo of leakage for insurance\"}",
         "ip_origen": "192.168.1.105",
-        "hash_previo": "b98d2a970d43a1e5cd69fd49b61c9a22d6ba5655141e710724e9667e4d91dc2a",
-        "hash_evento": "e2e670cc856c9e64836fa0e3be631f2c9c661c472d8900f5304965fcea231c5e"
+        "hash_previo": "c99bc0601c370ad644e92fb0c68726905a54e63869e3ad6d5e2ecc64f3fb63ae",
+        "hash_evento": "75c70a0fc149f47cec62cf10151ebc550eef3b99e9bb8b6068b05c5804942fff"
     },
     {
         "id": 7,
-        "timestamp_utc": "2026-02-04T18:05:14.898064",
+        "timestamp_utc": "2026-02-04T18:26:04.857232",
         "id_usuario": "s.cannes",
         "rol_usuario": "Gerente",
         "tipo_evento": "OPERATIONAL_OVERRIDE",
@@ -101,12 +101,12 @@
         "estado_nuevo": "{\"gate\": \"HSE\", \"status\": \"OVERRIDDEN\"}",
         "metadata": "{\"justification\": \"Remediaci\\u00f3n superficial certificada. Se autoriza continuar con taponamiento.\"}",
         "ip_origen": "192.168.1.106",
-        "hash_previo": "e2e670cc856c9e64836fa0e3be631f2c9c661c472d8900f5304965fcea231c5e",
-        "hash_evento": "8e36b00902242c8a03ca0bafb919d1f2b44024f6bd6ecea4dc736110b3b78051"
+        "hash_previo": "75c70a0fc149f47cec62cf10151ebc550eef3b99e9bb8b6068b05c5804942fff",
+        "hash_evento": "d402ddb42cbdc73cb8c3c2118726d2a700af4c353cd8ec8cf206c2299b9542a0"
     },
     {
         "id": 8,
-        "timestamp_utc": "2026-02-05T06:05:14.898064",
+        "timestamp_utc": "2026-02-05T06:26:04.857232",
         "id_usuario": "j.perez",
         "rol_usuario": "Supervisor",
         "tipo_evento": "EVIDENCE_UPLOAD",
@@ -116,12 +116,12 @@
         "estado_nuevo": "{\"file\": \"M-555_capped_wellhead.jpg\", \"hash\": \"sha256:4432...\"}",
         "metadata": "{\"desc\": \"Wellhead cut and capped - Final\"}",
         "ip_origen": "192.168.1.107",
-        "hash_previo": "8e36b00902242c8a03ca0bafb919d1f2b44024f6bd6ecea4dc736110b3b78051",
-        "hash_evento": "b976509f5687f7d0e23bb94e4366ca9865b5a28f032ca4159c4e26c6db77a8f5"
+        "hash_previo": "d402ddb42cbdc73cb8c3c2118726d2a700af4c353cd8ec8cf206c2299b9542a0",
+        "hash_evento": "386b5d350d0a5d253d3911d6da7f47f08ba82f4e70d908ab08b5b2acda6f5300"
     },
     {
         "id": 9,
-        "timestamp_utc": "2026-02-05T18:05:14.898064",
+        "timestamp_utc": "2026-02-05T18:26:04.857232",
         "id_usuario": "s.cannes",
         "rol_usuario": "Gerente",
         "tipo_evento": "DATA_CHANGE",
@@ -131,12 +131,12 @@
         "estado_nuevo": "{\"estado\": \"EN_ESPERA_APROBACION\"}",
         "metadata": "{\"event\": \"Final field audit completed\"}",
         "ip_origen": "192.168.1.108",
-        "hash_previo": "b976509f5687f7d0e23bb94e4366ca9865b5a28f032ca4159c4e26c6db77a8f5",
-        "hash_evento": "8dafe54273d615a472ea6804d6aec86adf178d76f0e03b5bdd47fda5d27938d0"
+        "hash_previo": "386b5d350d0a5d253d3911d6da7f47f08ba82f4e70d908ab08b5b2acda6f5300",
+        "hash_evento": "c946e3097a64145daa13b9028c64ac8e143dfe68cc0810cf2f4aacbdacf38afc"
     },
     {
         "id": 10,
-        "timestamp_utc": "2026-02-06T06:05:14.898064",
+        "timestamp_utc": "2026-02-06T06:26:04.857232",
         "id_usuario": "giriarte",
         "rol_usuario": "Gerente",
         "tipo_evento": "LOGIN_SUCCESS",
@@ -146,12 +146,12 @@
         "estado_nuevo": "{\"session\": \"active\"}",
         "metadata": "{\"device\": \"Windows Ops Room\"}",
         "ip_origen": "192.168.1.109",
-        "hash_previo": "8dafe54273d615a472ea6804d6aec86adf178d76f0e03b5bdd47fda5d27938d0",
-        "hash_evento": "a451bc50490b809590e5846351038cfab75480c566ce72df75fce6a60475b44f"
+        "hash_previo": "c946e3097a64145daa13b9028c64ac8e143dfe68cc0810cf2f4aacbdacf38afc",
+        "hash_evento": "f6f979c3ce7bcba11d3cb6052b69a201ddf053eeb846031d2dbd1b1b95c1fa31"
     },
     {
         "id": 11,
-        "timestamp_utc": "2026-02-06T18:05:14.898064",
+        "timestamp_utc": "2026-02-06T18:26:04.857232",
         "id_usuario": "j.perez",
         "rol_usuario": "Supervisor",
         "tipo_evento": "LOGIN_SUCCESS",
@@ -161,52 +161,7 @@
         "estado_nuevo": "{\"session\": \"active\"}",
         "metadata": "{\"device\": \"Android Field Tablet\"}",
         "ip_origen": "192.168.1.110",
-        "hash_previo": "a451bc50490b809590e5846351038cfab75480c566ce72df75fce6a60475b44f",
-        "hash_evento": "b28d2601b7cae5965e54ef66bec38af92535b8768aadf285b13c6ad01e0c0bcc"
-    },
-    {
-        "id": 12,
-        "timestamp_utc": "2026-02-11T18:19:01.795473",
-        "id_usuario": "admin",
-        "rol_usuario": "Administrativo",
-        "tipo_evento": "LOGIN_SUCCESS",
-        "entidad": "USUARIO",
-        "entidad_id": "admin",
-        "estado_anterior": null,
-        "estado_nuevo": null,
-        "metadata": "{\"nombre\": \"Administrador\"}",
-        "ip_origen": null,
-        "hash_previo": "b28d2601b7cae5965e54ef66bec38af92535b8768aadf285b13c6ad01e0c0bcc",
-        "hash_evento": "d264252ab4ec9d7ef82b32c4071739d5046599d694773826eded5ba93ad49e2b"
-    },
-    {
-        "id": 13,
-        "timestamp_utc": "2026-02-11T18:19:03.336704",
-        "id_usuario": "admin",
-        "rol_usuario": "Administrativo",
-        "tipo_evento": "LOGIN_SUCCESS",
-        "entidad": "USUARIO",
-        "entidad_id": "admin",
-        "estado_anterior": null,
-        "estado_nuevo": null,
-        "metadata": "{\"nombre\": \"Administrador\"}",
-        "ip_origen": null,
-        "hash_previo": "d264252ab4ec9d7ef82b32c4071739d5046599d694773826eded5ba93ad49e2b",
-        "hash_evento": "c75c48c3a7075548537ff7739fac093880647acb97cba80844ddc58f96ea37f0"
-    },
-    {
-        "id": 14,
-        "timestamp_utc": "2026-02-11T18:19:06.654557",
-        "id_usuario": "admin",
-        "rol_usuario": "Administrativo",
-        "tipo_evento": "LOGIN_SUCCESS",
-        "entidad": "USUARIO",
-        "entidad_id": "admin",
-        "estado_anterior": null,
-        "estado_nuevo": null,
-        "metadata": "{\"nombre\": \"Administrador\"}",
-        "ip_origen": null,
-        "hash_previo": "c75c48c3a7075548537ff7739fac093880647acb97cba80844ddc58f96ea37f0",
-        "hash_evento": "eec340c61004be957643b0c60a228983b6b7609d0006870be803035630e33db4"
+        "hash_previo": "f6f979c3ce7bcba11d3cb6052b69a201ddf053eeb846031d2dbd1b1b95c1fa31",
+        "hash_evento": "ef222b73ba36fd495a2231ceb624bd947f32f74e14148d0d0168c99bc1f03405"
     }
 ]

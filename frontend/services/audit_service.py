@@ -165,3 +165,18 @@ class AuditService:
                     except:
                         pass
             return sorted(well_events, key=lambda x: x['timestamp_utc'], reverse=True)
+
+    def get_all_events(self):
+        """Recupera todos los eventos del sistema."""
+        if self.db.is_available():
+            query = "SELECT * FROM audit_events ORDER BY timestamp_utc DESC LIMIT 200"
+            return self.db.fetch_all(query)
+        else:
+            events = self._load_mock_events()
+            for e in events:
+                if isinstance(e['timestamp_utc'], str):
+                    try:
+                        e['timestamp_utc'] = datetime.fromisoformat(e['timestamp_utc'])
+                    except:
+                        pass
+            return sorted(events, key=lambda x: x['timestamp_utc'], reverse=True)

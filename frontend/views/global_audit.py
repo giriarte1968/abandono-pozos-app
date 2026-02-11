@@ -34,10 +34,8 @@ def render_view():
     usuario = f_col2.text_input("Filtrar por Usuario (ID)")
     pozo = f_col3.text_input("Filtrar por Pozo (ID)")
 
-    # Consulta (Simulada o Real si AuditService soporta filtros)
-    # Por ahora traemos todos y filtramos en memoria para el MVP
-    query = "SELECT * FROM audit_events ORDER BY timestamp_utc DESC LIMIT 100"
-    events = audit.db.fetch_all(query)
+    # Consulta resiliente (Mock Fallback incluido en el servicio)
+    events = audit.get_all_events()
 
     if tipo != "TODOS":
         events = [e for e in events if e['tipo_evento'] == tipo]

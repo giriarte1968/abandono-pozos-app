@@ -48,18 +48,20 @@ def generate_mock_audit():
 
     for i, raw in enumerate(raw_events):
         ts = (base_time + timedelta(hours=i*12)).isoformat()
-        ev_info = {
+        
+        # Guardamos la info con DICTS para el hash (Igual que hace log_event)
+        ev_info_for_hash = {
             "id_usuario": raw["user"],
             "rol_usuario": raw["role"],
             "tipo_evento": raw["type"],
             "entidad": raw["ent"],
             "entidad_id": raw["ent_id"],
-            "estado_anterior": json.dumps(raw["ant"]) if raw["ant"] else None,
-            "estado_nuevo": json.dumps(raw["new"]) if raw["new"] else None,
-            "metadata": json.dumps(raw["meta"]) if raw["meta"] else None
+            "estado_anterior": raw["ant"],
+            "estado_nuevo": raw["new"],
+            "metadata": raw["meta"]
         }
         
-        h = calculate_hash(ev_info, prev_hash)
+        h = calculate_hash(ev_info_for_hash, prev_hash)
         
         full_event = {
             "id": i + 1,
@@ -69,9 +71,9 @@ def generate_mock_audit():
             "tipo_evento": raw["type"],
             "entidad": raw["ent"],
             "entidad_id": raw["ent_id"],
-            "estado_anterior": ev_info["estado_anterior"],
-            "estado_nuevo": ev_info["estado_nuevo"],
-            "metadata": ev_info["metadata"],
+            "estado_anterior": json.dumps(raw["ant"]) if raw["ant"] else None,
+            "estado_nuevo": json.dumps(raw["new"]) if raw["new"] else None,
+            "metadata": json.dumps(raw["meta"]) if raw["meta"] else None,
             "ip_origen": "192.168.1." + str(100+i),
             "hash_previo": prev_hash,
             "hash_evento": h
