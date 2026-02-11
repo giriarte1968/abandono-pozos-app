@@ -37,19 +37,31 @@ def render_view():
     # Consulta resiliente (Mock Fallback incluido en el servicio)
     events = audit.get_all_events()
 
+    # --- FILTRADO ROBUSTO ---
+    filtered_events = events
     if tipo != "TODOS":
-        events = [e for e in events if e['tipo_evento'] == tipo]
+        filtered_events = [e for e in filtered_events if e.get('tipo_evento') == tipo]
+    
     if usuario:
-        events = [e for e in events if usuario.lower() in e['id_usuario'].lower()]
+        u_query = usuario.lower().strip()
+        filtered_events = [
+            e for e in filtered_events 
+            if e.get('id_usuario') and u_query in str(e.get('id_usuario')).lower()
+        ]
+        
     if pozo:
-        events = [e for e in events if e['entidad'] == 'POZO' and pozo.lower() in e['entidad_id'].lower()]
+        p_query = pozo.lower().strip()
+        filtered_events = [
+            e for e in filtered_events 
+            if e.get('entidad') == 'POZO' and e.get('entidad_id') and p_query in str(e.get('entidad_id')).lower()
+        ]
 
-    if not events:
-        st.info("No se encontraron eventos coincidentes.")
+    if not filtered_events:
+        st.info("No se encontraron eventos coincidentes con los filtros aplicados.")
         return
 
     # Visualización en Tabla Consolidada
-    df = pd.DataFrame(events)
+    df = pd.DataFrame(filtered_events)
     # Formatear TS
     df['fecha_hora'] = df['timestamp_utc'].apply(lambda x: x.strftime("%d/%m/%Y %H:%M"))
     
@@ -69,25 +81,59 @@ def render_view():
 
     # Detalle expandible del último evento
     st.subheader("Inspección de Detalle")
-    selected_event_id = st.selectbox("Seleccionar ID para inspección profunda:", [e['id'] for e in events])
+    # Usar una llave única para el selectbox para evitar problemas de estado
+    event_options = {f"Event #{e['id']} - {e['tipo_evento']} ({e['timestamp_utc'].strftime('%H:%M')})": e['id'] for e in filtered_events}
+    selected_label = st.selectbox("Seleccionar evento para inspección profunda:", list(event_options.keys()))
+    selected_id = event_options[selected_label]
     
-    ev = next((e for e in events if e['id'] == selected_event_id), None)
+    ev = next((e for e in filtered_events if e['id'] == selected_id), None)
     if ev:
         with st.container(border=True):
-            st.markdown(f"#### Evento #{ev['id']} - {ev['tipo_evento']}")
+            st.markdown(f"#### {ev['tipo_evento']} #{ev['id']}")
             st.code(f"Hash: {ev['hash_evento']}\nHash Previo: {ev['hash_previo']}", language="markdown")
             
+            # --- VISUALIZACIÓN DE EVIDENCIA ---
+            if ev['tipo_evento'] == "EVIDENCE_UPLOAD":
+                st.markdown("---")
+                st.markdown("##### 🖼️ Evidencia Certificada (Full)")
+                try:
+                    state = json.loads(ev['estado_nuevo']) if isinstance(ev['estado_nuevo'], str) else ev['estado_nuevo']
+                    file_name = state.get('file_name') or state.get('file')
+                    if file_name:
+                        file_path = f"storage/evidence/{file_name}"
+                        if os.path.exists(file_path):
+                            # Si es un mock (archivo de texto), mostramos un placeholder bonito o el contenido
+                            if file_name.endswith('.jpg') or file_name.endswith('.png'):
+                                # En una app real esto sería la imagen. Aquí, si es mock, Streamlit mostrará error 
+                                # o podemos intentar cargarla. Para el mock, mostramos un mensaje decorativo.
+                                st.image("https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg", caption=f"Vista Previa (Simulada): {file_name}")
+                                st.info(f"Archivo físico verificado en servidor: `{file_name}`")
+                            else:
+                                st.warning(f"Extensión no previsualizable: {file_name}")
+                except Exception as ex:
+                    st.error(f"Error al cargar evidencia: {str(ex)}")
+
             c1, c2 = st.columns(2)
             if ev['estado_anterior']:
                 c1.markdown("**Estado Anterior:**")
-                c1.json(json.loads(ev['estado_anterior']))
+                try:
+                    c1.json(json.loads(ev['estado_anterior']) if isinstance(ev['estado_anterior'], str) else ev['estado_anterior'])
+                except:
+                    c1.write(ev['estado_anterior'])
+            
             if ev['estado_nuevo']:
                 c2.markdown("**Estado Nuevo:**")
-                c2.json(json.loads(ev['estado_nuevo']))
+                try:
+                    c2.json(json.loads(ev['estado_nuevo']) if isinstance(ev['estado_nuevo'], str) else ev['estado_nuevo'])
+                except:
+                    c2.write(ev['estado_nuevo'])
             
             if ev['metadata']:
                 st.markdown("**Metadatos Adicionales:**")
-                st.json(json.loads(ev['metadata']))
+                try:
+                    st.json(json.loads(ev['metadata']) if isinstance(ev['metadata'], str) else ev['metadata'])
+                except:
+                    st.write(ev['metadata'])
 
     st.markdown("---")
     st.caption("AbandonPro v0.1.0 - Modulo de Auditoria Certificada")

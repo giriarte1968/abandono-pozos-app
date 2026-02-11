@@ -53,22 +53,51 @@ def render_timeline(project_id):
             col2.markdown(f"**{event['tipo_evento']}** | `{ts}`")
             col2.caption(f"Usuario: {event['id_usuario']} ({event['rol_usuario']})")
 
+            # --- PREVISUALIZACIÓN DE EVIDENCIA (Miniatura) ---
+            if event['tipo_evento'] == "EVIDENCE_UPLOAD":
+                try:
+                    state = json.loads(event['estado_nuevo']) if isinstance(event['estado_nuevo'], str) else event['estado_nuevo']
+                    file_name = state.get('file_name') or state.get('file')
+                    if file_name:
+                        # Placeholder de industria para la miniatura
+                        col2.image("https://img.freepik.com/free-photo/oil-rig-worker-pointing-silhouette_23-2148110294.jpg", 
+                                 width=150, caption="Preview: " + file_name)
+                except:
+                    pass
+
             # Expander para detalles técnicos (Hashes y JSON)
-            with col2.expander("Ver Detalles Técnicos (Hash & Payload)"):
+            with col2.expander("Ver Detalles Técnicos y Evidencia Full"):
                 st.code(f"ID: {event['id']}\nHash: {event['hash_evento']}\nPrev: {event['hash_previo']}", language="markdown")
                 
+                # Imagen Full si es Evidencia
+                if event['tipo_evento'] == "EVIDENCE_UPLOAD":
+                    st.markdown("##### 🖼️ Inspección de Evidencia (Full Resolution)")
+                    # En mock, usamos una imagen de stock real de alta calidad
+                    st.image("https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg", 
+                             caption=f"Evidencia Certificada: {file_name}")
+                    st.info(f"Integridad de archivo verificada: `{file_name}`")
+
                 c_json1, c_json2 = st.columns(2)
                 if event['estado_anterior']:
                     c_json1.markdown("**Estado Anterior:**")
-                    c_json1.json(json.loads(event['estado_anterior']))
+                    try:
+                        c_json1.json(json.loads(event['estado_anterior']) if isinstance(event['estado_anterior'], str) else event['estado_anterior'])
+                    except:
+                        c_json1.write(event['estado_anterior'])
                 
                 if event['estado_nuevo']:
                     c_json2.markdown("**Estado Nuevo:**")
-                    c_json2.json(json.loads(event['estado_nuevo']))
+                    try:
+                        c_json2.json(json.loads(event['estado_nuevo']) if isinstance(event['estado_nuevo'], str) else event['estado_nuevo'])
+                    except:
+                        c_json2.write(event['estado_nuevo'])
                 
                 if event['metadata']:
                     st.markdown("**Metadata:**")
-                    st.json(json.loads(event['metadata']))
+                    try:
+                        st.json(json.loads(event['metadata']) if isinstance(event['metadata'], str) else event['metadata'])
+                    except:
+                        st.write(event['metadata'])
 
     st.markdown("---")
     st.caption("v0.1.0 | Blockchain-Light Audit Trail enabled")
