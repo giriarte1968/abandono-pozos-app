@@ -2,8 +2,10 @@ import time
 import random
 import json
 import os
+import math
 from datetime import datetime, timedelta
 from .database_service import DatabaseService
+from .audit_service import AuditService
 
 class MockApiClient:
     """
@@ -11,18 +13,29 @@ class MockApiClient:
     Utiliza DatabaseService para MySQL y un archivo JSON local como Persistencia de Respaldo.
     """
 
-    def __init__(self):
+    def __init__(self, audit_service=None):
         self.db = DatabaseService()
+        self.audit = audit_service or AuditService(self.db)
         self.storage_path = "frontend/services/persistence_db.json"
         
         # Cargar datos iniciales desde JSON si existe
         self._db_data = self._load_persistence()
         
-        # Mapeo de listas internas para compatibilidad con código existente
-        self._db_projects = self._db_data.get('projects', self._generate_mock_data())
-        self._db_master_people = self._db_data.get('people', [])
-        self._db_master_equipment = self._db_data.get('equipment', [])
-        self._db_master_supplies = self._db_data.get('supplies', [])
+        # Mapeo de listas internas con datos por defecto si están vacíos
+        self._db_projects = self._db_data.get('projects') or self._generate_mock_projects()
+        self._db_master_people = self._db_data.get('people') or self._generate_mock_people()
+        self._db_master_equipment = self._db_data.get('equipment') or self._generate_mock_equipment()
+        self._db_master_supplies = self._db_data.get('supplies') or self._generate_mock_supplies()
+
+        # --- LOGICA OFFLINE ---
+        self._is_online = True
+        self._outbox = self._db_data.get('sync_outbox') or []
+        self._offline_cache = self._db_data.get('offline_cache') or {}
+        self._emergency_inbox = self._db_data.get('emergency_inbox') or []
+
+    def _get_distance(self, lat1, lon1, lat2, lon2):
+        """Calcula distancia en km entre dos puntos (haversine aproximado para mock)."""
+        return math.sqrt((lat1 - lat2)**2 + (lon1 - lon2)**2) * 111
 
     def _load_persistence(self):
         if os.path.exists(self.storage_path):
@@ -35,12 +48,15 @@ class MockApiClient:
             "projects": self._db_projects,
             "people": self._db_master_people,
             "equipment": self._db_master_equipment,
-            "supplies": self._db_master_supplies
+            "supplies": self._db_master_supplies,
+            "sync_outbox": self._outbox,
+            "offline_cache": self._offline_cache,
+            "emergency_inbox": self._emergency_inbox
         }
         with open(self.storage_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
 
-    def _generate_mock_data(self):
+    def _generate_mock_projects(self):
         return [
             {
                 "id": "X-123",
@@ -92,6 +108,54 @@ class MockApiClient:
             }
         ]
 
+    def _generate_mock_people(self):
+        return [
+            {"name": "Juan Pérez", "role": "Supervisor", "category": "DIRECTO", "medical_ok": True, "induction_ok": True},
+            {"name": "Maria Gonzalez", "role": "HSE", "category": "DIRECTO", "medical_ok": True, "induction_ok": True},
+            {"name": "Sebastian Cannes", "role": "Gerente", "category": "DIRECTO", "medical_ok": True, "induction_ok": True},
+            {"name": "Roberto Ruiz", "role": "Operario", "category": "INDIRECTO", "medical_ok": True, "induction_ok": False}
+        ]
+
+    def _generate_mock_equipment(self):
+        return [
+            {"name": "Pulling Unit #01", "type": "PULLING", "category": "DIRECTO", "status": "OPERATIVO"},
+            {"name": "Cisterna 25m3 #1", "type": "CISTERNA", "category": "INDIRECTO", "status": "OPERATIVO"},
+            {"name": "Camion de Apoyo", "type": "APERTURA", "category": "INDIRECTO", "status": "DISPONIBLE"}
+        ]
+
+    def _generate_mock_supplies(self):
+        return [
+            {"item": "Cemento (Bolsas)", "unit": "u", "min": 50},
+            {"item": "Agua Industrial", "unit": "m3", "min": 10},
+            {"item": "Gasoil", "unit": "lts", "min": 500}
+        ]
+
+    def get_all_logistics(self):
+        """Consolida información logística de todos los proyectos activos."""
+        logistics_data = []
+        for p in self._db_projects:
+            detail = self.get_project_detail(p['id'])
+            if detail:
+                for t in detail.get('transport_list', []):
+                    t_copy = t.copy()
+                    t_copy['project_id'] = p['id']
+                    t_copy['project_name'] = p['nombre']
+                    logistics_data.append(t_copy)
+        return logistics_data
+
+    def get_all_supplies_status(self):
+        """Consolida el estado de stock crítico de todos los proyectos."""
+        stock_status = []
+        for p in self._db_projects:
+            detail = self.get_project_detail(p['id'])
+            if detail:
+                for s in detail.get('stock_list', []):
+                    s_copy = s.copy()
+                    s_copy['project_id'] = p['id']
+                    s_copy['project_name'] = p['nombre']
+                    stock_status.append(s_copy)
+        return stock_status
+
     # --- QUERIES (Lectura) ---
 
     def get_dashboard_stats(self):
@@ -106,186 +170,242 @@ class MockApiClient:
         }
 
     def get_projects(self, filter_status=None):
-        """Retorna lista de proyectos desde MySQL + Mock de apoyo."""
-        try:
-            db_pozos = self.db.fetch_all("SELECT * FROM tbl_pozos")
-            # Mapeamos campos de la DB al formato esperado por la UI
-            processed = []
-            for p in db_pozos:
-                processed.append({
-                    "id": p['id_pozo'],
-                    "nombre": p['nombre_pozo'],
-                    "yacimiento": p['id_yacimiento'],
-                    "estado_proyecto": "EN_CURSO" if p['estado_pozo'] == 'ACTIVO' else "PLANIFICADO",
-                    "progreso": 0,
-                    "responsable": p.get('responsable_asig', 'No asignado')
-                })
-            # Mezclamos con los mocks (para no perder los demos Z-789 etc.)
-            for m in self._db_projects:
-                if not any(p['id'] == m['id'] for p in processed):
-                    processed.append(m)
-            
-            if filter_status and filter_status != 'Todos':
-                return [p for p in processed if p['estado_proyecto'] == filter_status]
-            return processed
-        except Exception as e:
-            print(f"[ERROR] DB: {e}")
-            return self._db_projects
+        """Retorna lista de proyectos (MODO MOCK EXCLUSIVO)."""
+        # --- BD Comentada para Local ---
+        # try:
+        #     db_pozos = self.db.fetch_all("SELECT * FROM tbl_pozos")
+        #     ...
+        # except Exception as e:
+        #     print(f"[ERROR] DB: {e}")
+        
+        processed = self._db_projects
+        if filter_status and filter_status != 'Todos':
+            return [p for p in processed if p['estado_proyecto'] == filter_status]
+        return processed
 
     def get_master_personnel(self):
-        # Prioridad 1: MySQL (si está disponible)
-        try:
-            return self.db.fetch_all("SELECT * FROM tbl_personal_catalogo")
-        except:
-            # Prioridad 2: Local Persistence JSON
-            return self._db_master_people
+        """Retorna personal (MODO MOCK EXCLUSIVO)."""
+        # try:
+        #     return self.db.fetch_all("SELECT * FROM tbl_personal_catalogo")
+        # except:
+        return self._db_master_people
 
     def get_master_equipment(self):
-        try:
-            return self.db.fetch_all("SELECT * FROM tbl_equipos_catalogo")
-        except:
-            return self._db_master_equipment
+        """Retorna equipos (MODO MOCK EXCLUSIVO)."""
+        # try:
+        #     return self.db.fetch_all("SELECT * FROM tbl_equipos_catalogo")
+        # except:
+        return self._db_master_equipment
 
     def get_master_supplies(self):
-        try:
-            return self.db.fetch_all("SELECT * FROM tbl_stock_inventario WHERE id_expediente='CATALOGO'")
-        except:
-            return self._db_master_supplies
+        """Retorna insumos (MODO MOCK EXCLUSIVO)."""
+        # try:
+        #     return self.db.fetch_all("SELECT * FROM tbl_stock_inventario WHERE id_expediente='CATALOGO'")
+        # except:
+        return self._db_master_supplies
 
     def get_project_detail(self, project_id):
-        """Retorna detalle completo de un proyecto."""
-        # Simula busqueda en DB
+        """Retorna detalle completo de un proyecto con lógica basada en el Estado."""
+        # Simula busqueda en persistencia local
         project = next((p for p in self._db_projects if p['id'] == project_id), None)
         if not project:
             return None
         
-        # UI Compatibility Mappings
-        project['well'] = project['id']
-        project['name'] = project['nombre']
-        project['status'] = project['workflow_status']
+        status = project.get('estado_proyecto', 'PLANIFICADO')
+        project_copy = project.copy()
+        project_copy['well'] = project['id']
+        project_copy['name'] = project['nombre']
+        project_copy['status'] = status
 
-        # --- Extended Operational Data ---
-        # Each validation can have: source (AUTOMATIC|EXTERNAL|MANUAL), validated_by, validated_at, justification
-        # CRITICAL: For Personnel HSE validations, only AUTOMATIC sources are valid
-        # --- Quotas & Constraints (New Logic) ---
-        # --- Hybrid Model States (External Truth + Internal Gate) ---
-        project['dtm_confirmado'] = True if project['id'] != "A-321" else False # A-321 is waiting for DTM
-        project['personal_confirmado_hoy'] = True
+        well_lat = project.get('lat', -45.8)
+        well_lon = project.get('lon', -67.4)
+
+        # --- LÓGICA BASADA EN ESTADO ---
+        if status == "PLANIFICADO":
+            project_copy['dtm_confirmado'] = False
+            project_copy['personal_confirmado_hoy'] = False
+            project_copy['allowed_operations'] = ["ESPERA"]
+            transports = [
+                {"id": "T01", "type": "Minibus", "driver": "Logistica Sur", "status": "CARGANDO_RECURSOS", "time_plan": "07:30", "gps_active": True, "cur_lat": well_lat - 0.2, "cur_lon": well_lon - 0.2, "dist_to_well": 25.0, "eta_minutes": 45},
+                {"id": "T02", "type": "Camion Cisterna", "driver": "Aguas Patagonicas", "status": "PROGRAMADO", "time_plan": "08:00", "gps_active": False},
+            ]
+            equipment = [
+                {"name": "Pulling Unit #01", "category": "DIRECTO", "type": "PULLING", "status": "OPERATIVO", "assigned": True, "is_on_location": False},
+            ]
+            telemetry = None
+        elif status == "BLOQUEADO":
+            project_copy['dtm_confirmado'] = True
+            project_copy['personal_confirmado_hoy'] = True
+            project_copy['allowed_operations'] = ["ESPERA"]
+            transports = [
+                {"id": "T01", "type": "Minibus", "driver": "Logistica Sur", "status": "ARRIBO", "time_plan": "07:30", "time_arrival": "07:15", "gps_active": False},
+                {"id": "T03", "type": "Cisterna Combustible", "driver": "YPF Directo", "status": "DEMORADO_CHECKPOINT", "time_plan": "09:00", "gps_active": True, "cur_lat": well_lat + 0.05, "cur_lon": well_lon + 0.02, "dist_to_well": 5.4, "eta_minutes": 15},
+            ]
+            equipment = [
+                {"name": "Pulling Unit #01", "category": "DIRECTO", "type": "PULLING", "status": "FALLA CRITICA", "assigned": True, "is_on_location": True},
+            ]
+            telemetry = self._generate_rig_telemetry(critical_fail=True)
+        else: # EN_EJECUCION
+            project_copy['dtm_confirmado'] = True
+            project_copy['personal_confirmado_hoy'] = True
+            project_copy['allowed_operations'] = ["ESPERA", "CEMENTACION", "DTM"]
+            transports = [
+                {"id": "T01", "type": "Minibus", "driver": "Logistica Sur", "status": "ARRIBO", "time_plan": "07:30", "time_arrival": "07:10", "gps_active": False},
+                {
+                    "id": "T02", "type": "Camion Cisterna (25m3)", 
+                    "driver": "Aguas Patagonicas", 
+                    "status": "EN RUTA", 
+                    "time_plan": "08:00",
+                    "gps_active": True,
+                    "cur_lat": well_lat + 0.1, 
+                    "cur_lon": well_lon + 0.05,
+                    "dist_to_well": 12.5,
+                    "eta_minutes": 25 
+                },
+            ]
+            equipment = [
+                {"name": "Pulling Unit #01", "category": "DIRECTO", "type": "PULLING", "status": "OPERATIVO", "assigned": True, "is_on_location": True},
+                {"name": "Cementador #1", "category": "DIRECTO", "type": "CEMENTADOR", "status": "OPERATIVO", "assigned": True, "is_on_location": True},
+            ]
+            telemetry = self._generate_rig_telemetry()
+
+        project_copy['transport_list'] = transports
+        project_copy['equipment_list'] = equipment
+        project_copy['rig_telemetry'] = telemetry
         
-        # Event History (External Truth Log)
-        project['external_truth_log'] = [
-            {"ts": "2026-02-01 07:00", "source": "DTM_GATEWAY", "event": "DTM_CONFIRMADO", "payload": "Apertura de locación validada", "status": "GATE_OPEN"},
-            {"ts": "2026-02-03 07:15", "source": "CONTROL_ACCESO", "event": "PERSONAL_PRESENTE", "payload": "Conteo 70/70 verificado", "status": "INFO"},
-            {"ts": "2026-02-03 08:30", "source": "WEATHER_NET", "event": "METEOROLOGIA_ACTUALIZADA", "payload": "Viento 25km/h - Despejado", "status": "INFO"},
+        # Datos comunes (Personal y Stock)
+        project_copy['personnel_list'] = [
+            {"id": "PD01", "name": "Juan Perez", "role": "Supervisor", "category": "DIRECTO", "critical": True, "present": True,
+             "medical_ok": True, "medical_source": "AUTOMATIC", "medical_validated_by": "Corp", "medical_validated_at": "2026-01-15 08:00",
+             "induction_ok": True, "induction_source": "AUTOMATIC", "induction_validated_by": "HSE", "induction_validated_at": "2026-01-10 10:00"},
+            {"id": "PD02", "name": "Carlos Gomez", "role": "Op. Pulling", "category": "DIRECTO", "critical": True, "present": True,
+             "medical_ok": True, "medical_source": "AUTOMATIC", "medical_validated_by": "Corp", "medical_validated_at": "2026-01-20 09:00",
+             "induction_ok": status != "BLOQUEADO", "induction_source": "AUTOMATIC", "induction_validated_by": "HSE", "induction_validated_at": "2025-12-01 14:00"},
+        ]
+        
+        project_copy['stock_list'] = [
+            {"item": "Cemento (Bolsas)", "current": 150 if status != "PLANIFICADO" else 0, "consumed": 0, "min": 50, "unit": "u"},
+            {"item": "Agua Industrial", "current": 25.0 if status != "PLANIFICADO" else 5.0, "consumed": 0, "min": 10.0, "unit": "m3"},
         ]
 
-        # --- Quotas & Constraints ---
-        project['quotas'] = {
-            "DIRECTO": {
-                "PULLING": {"target": 3, "current": 3},
-                "PILETA": {"target": 3, "current": 3},
-                "CEMENTADOR": {"target": 2, "current": 2},
-                "WIRELINE": {"target": 1, "current": 1}
-            },
-            "PERSONNEL": {
-                "DIRECTO": {"target": 45, "current": 45},
-                "INDIRECTO": {"target": 25, "current": 25}
-            }
+        # Quotas
+        project_copy['quotas'] = {
+            "DIRECTO": {"PULLING": {"target": 1, "current": 1 if status != "PLANIFICADO" else 0}},
+            "PERSONNEL": {"DIRECTO": {"target": 10, "current": 10 if status != "PLANIFICADO" else 0}}
         }
 
-        # Simulating personnel list...
-        project['personnel_list'] = [
-            {"id": "PD01", "name": "Juan Perez", "role": "Supervisor", "category": "DIRECTO", "critical": True, "present": True,
-             "medical_ok": True, "medical_source": "AUTOMATIC", "medical_validated_by": "Sistema Médico Corporativo", "medical_validated_at": "2026-01-15 08:00",
-             "induction_ok": True, "induction_source": "AUTOMATIC", "induction_validated_by": "Sistema HSE", "induction_validated_at": "2026-01-10 10:00"},
-            {"id": "PD02", "name": "Carlos Gomez", "role": "Op. Pulling", "category": "DIRECTO", "critical": True, "present": True,
-             "medical_ok": True, "medical_source": "AUTOMATIC", "medical_validated_by": "Sistema Médico Corporativo", "medical_validated_at": "2026-01-20 09:00",
-             "induction_ok": False, "induction_source": "AUTOMATIC", "induction_validated_by": "Sistema HSE", "induction_validated_at": "2025-12-01 14:00"},
-            {"id": "PI01", "name": "Roberto Ruiz", "role": "Chofer Cisterna", "category": "INDIRECTO", "critical": False, "present": True,
-             "medical_ok": True, "medical_source": "AUTOMATIC", "medical_validated_by": "Sistema Médico Corporativo", "medical_validated_at": "2025-11-30 16:00",
-             "induction_ok": True, "induction_source": "AUTOMATIC", "induction_validated_by": "Sistema HSE", "induction_validated_at": "2026-01-12 13:00"},
-        ]
-        
-        project['personnel_summary'] = {"direct": 45, "indirect": 25, "total": 70}
+        return project_copy
 
-        project['transport_list'] = [
-             {"id": "T01", "type": "Minibus", "driver": "Logistica Sur", "status": "PROGRAMADO", "time_plan": "07:30", "time_arrival": None},
-             {"id": "T02", "type": "Camion Cisterna (25m3)", "driver": "Aguas Patagonicas", "status": "ARRIBO", "time_plan": "08:00", "time_arrival": "08:15"},
-        ]
+    def analyze_project_status(self, project_id):
+        """Analiza toda la info disponible y saca una conclusión o recomendación."""
+        project = self.get_project_detail(project_id)
+        if not project:
+            return "No encuentro datos suficientes para analizar este pozo."
 
-        project['stock_list'] = [
-            {"item": "Cemento (Bolsas)", "current": 150, "consumed": 0, "min": 50, "unit": "u"},
-            {"item": "Agua Industrial", "current": 25.0, "consumed": 0, "min": 10.0, "unit": "m3"},
-        ]
+        status = project['status']
+        recommendations = []
+        alerts = []
 
-        project['equipment_list'] = [
-            {"name": "Pulling Unit #01", "category": "DIRECTO", "type": "PULLING", "status": "OPERATIVO", "assigned": True, "is_on_location": True,
-             "validation_source": "AUTOMATIC", "validated_by": "Sistema Mantenimiento", "validated_at": "2026-02-01 06:00"},
-            {"name": "Cementador #1", "category": "DIRECTO", "type": "CEMENTADOR", "status": "OPERATIVO", "assigned": True, "is_on_location": True},
-            {"name": "Cisterna 25m3 #1", "category": "INDIRECTO", "type": "CISTERNA", "status": "OPERATIVO", "assigned": True, "is_on_location": True},
-            {"name": "Set Apertura Locación", "category": "INDIRECTO", "type": "APERTURA", "status": "OPERATIVO", "assigned": True, "is_on_location": True},
-        ]
+        # 1. Análisis de Gates / HSE
+        if not project.get('dtm_confirmado'):
+            alerts.append("🔴 **BLOQUEO LEGAL**: El Gate DTM está cerrado.")
+            recommendations.append("Solicitar la confirmación del DTM al centro de planificación para habilitar la locación.")
         
-        # --- Rule Engine (Hybrid Logic) ---
-        project['allowed_operations'] = ["ESPERA"]
-        
-        # GATE 1: DTM Confirmado
-        if project.get('dtm_confirmado'):
-            # Dependencies
-            cisternas_ok = any(e['type'] == 'CISTERNA' and e['status'] == 'OPERATIVO' and e.get('is_on_location') for e in project['equipment_list'])
-            apertura_ok = any(e['type'] == 'APERTURA' and e['status'] == 'OPERATIVO' for e in project['equipment_list'])
+        for p in project.get('personnel_list', []):
+            if not p['medical_ok'] or not p['induction_ok']:
+                alerts.append(f"🔴 **RIESGO HSE**: {p['name']} ({p['role']}) no está apto.")
+                recommendations.append(f"Reemplazar a {p['name']} o actualizar su documentación HSE antes de iniciar tareas críticas.")
+
+        # 2. Análisis de Telemetría (EDR)
+        telemetry = project.get('rig_telemetry')
+        if telemetry:
+            if telemetry['rig_state'] == 'ALARM_STOP':
+                alerts.append("🚨 **PARADA DE EMERGENCIA**: El equipo de Pulling está en ALARM_STOP.")
+                recommendations.append("Inspeccionar falla crítica en Pulling Unit #01 y verificar bitácora de mantenimiento.")
             
-            if cisternas_ok:
-                project['allowed_operations'].append("CEMENTACION")
-            if apertura_ok:
-                project['allowed_operations'].append("DTM")
+            if telemetry['annular_pressure'] > 120:
+                alerts.append(f"⚠️ **ALTA PRESIÓN ANULAR**: {telemetry['annular_pressure']} psi detectados.")
+                recommendations.append("Realizar prueba de integridad de la faja o ventear según protocolo de control de pozo.")
+
+        # 3. Análisis de Logística / Stock
+        for t in project.get('transport_list', []):
+            if t['status'] == 'DEMORADO_CHECKPOINT':
+                alerts.append(f"🛑 **DEMORA LOGÍSTICA**: {t['type']} demorado en checkpoint.")
+                recommendations.append(f"Contactar a {t['driver']} para agilizar el ingreso de recursos críticos.")
+
+        # 4. Análisis de Stock
+        for s in project.get('stock_list', []):
+            if s['current'] < s['min']:
+                alerts.append(f"📦 **STOCK BAJO**: {s['item']} ({s['current']} {s['unit']})")
+                recommendations.append(f"Generar pedido de abastecimiento urgente para {s['item']}.")
+
+        # Generar Respuesta
+        if not alerts:
+            summary = "✅ **Estado Operativo Óptimo.** Todos los parámetros están dentro de la norma."
+            rec_text = "Continuar con el cronograma y emitir el reporte diario al finalizar el turno."
         else:
-            project['blocking_message'] = "⚠ OPERACIONES BLOQUEADAS: Esperando evento DTM_CONFIRMADO (External Truth)"
+            summary = "⚠️ **Análisis de Situación:**\n" + "\n".join(alerts)
+            rec_text = "**Acciones Recomendadas:**\n" + "\n".join([f"{i+1}. {r}" for i, r in enumerate(list(set(recommendations)))])
 
-        project['permits_list'] = [
-             {"type": "Trabajo en Caliente", "expires": "2026-02-01", "status": "VIGENTE"},
-             {"type": "Izaje Pesado", "expires": "2026-01-30", "status": "VENCIDO"},
-        ]
-        
-        project['history'] = [
-            {"fecha": "2024-05-01", "evento": "Inicio Trámite", "usuario": "Sistema"},
-            {"fecha": "2024-05-10", "evento": "Inicio Logística", "usuario": "Admin"},
-        ]
-        return project
+        return f"{summary}\n\n{rec_text}"
 
-    def upsert_well(self, data):
-        """CRUD: Alta/Edición de Pozo en MySQL."""
-        print(f"[DB] Admin CRUD: Guardando pozo {data['id']}")
-        query = """
-        INSERT INTO tbl_pozos (id_pozo, nombre_pozo, id_yacimiento, lat, lon, estado_pozo, responsable_asig, creado_por)
-        VALUES (%(id)s, %(nombre)s, %(yacimiento)s, %(lat)s, %(lon)s, 'ACTIVO', %(responsable)s, 'ADMIN')
-        ON DUPLICATE KEY UPDATE 
-            nombre_pozo=%(nombre)s, id_yacimiento=%(yacimiento)s, lat=%(lat)s, lon=%(lon)s, responsable_asig=%(responsable)s
-        """
-        try:
-            self.db.execute(query, data)
-        except Exception as e:
-            print(f"[ERROR DB] {e}")
+    def _generate_rig_telemetry(self, critical_fail=False):
+        """Simula datos de EDR (Electronic Data Recorder) de alta fidelidad."""
+        has_val = not critical_fail
+        return {
+            "hook_load": random.uniform(20.0, 25.0) if has_val else 0.0,
+            "hook_load_unit": "tn",
+            "wob": random.uniform(2.0, 5.0) if has_val else 0.0,
+            "wob_unit": "tn",
+            "bit_depth": random.uniform(1200.0, 1500.0),
+            "bit_depth_unit": "m",
+            "pump_pressure": random.uniform(800.0, 1200.0) if has_val else 0.0,
+            "pump_pressure_unit": "psi",
+            "annular_pressure": random.uniform(50.0, 150.0) if has_val else 0.0,
+            "annular_pressure_unit": "psi",
+            "pit_volume": random.uniform(40.0, 45.0) if has_val else 0.0,
+            "pit_volume_unit": "m3",
+            "trip_tank": random.uniform(2.5, 3.0) if has_val else 0.0,
+            "trip_tank_unit": "m3",
+            "torque": random.uniform(500.0, 800.0) if has_val else 0.0,
+            "torque_unit": "ft-lb",
+            "spm": random.randint(40, 60) if has_val else 0,
+            "gas_total": random.uniform(0.1, 0.5) if has_val else 0.0,
+            "gas_unit": "%",
+            "rig_state": "TRIPPING" if has_val else "ALARM_STOP",
+            "last_update": datetime.now().strftime("%H:%M:%S")
+        }
+
+    def upsert_well(self, data, user_id="system", user_role="admin"):
+        """CRUD: Registro de Pozo (MODO MOCK EXCLUSIVO)."""
+        print(f"[MOCK] Guardando pozo {data['id']}")
         
-        # SIEMPRE persistir en JSON local para que sobreviva el F5
+        # Obtener estado anterior para el log
         existing = next((p for p in self._db_projects if p['id'] == data['id']), None)
+        prev_state = existing.copy() if existing else None
+        
+        # Persistir en JSON local
         if existing: existing.update(data)
         else: self._db_projects.append(data)
         self._save_persistence()
+
+        # Auditoría
+        self.audit.log_event(
+            user_id=user_id,
+            user_role=user_role,
+            event_type="DATA_CHANGE",
+            entity="POZO",
+            entity_id=data['id'],
+            prev_state=prev_state,
+            new_state=data,
+            metadata={"action": "upsert_well"}
+        )
         return True
 
     def upsert_person(self, data):
-        """CRUD: Alta/Edición de Personal en MySQL."""
-        print(f"[DB] Admin CRUD: Guardando persona {data['name']}")
-        query = """
-        INSERT INTO tbl_personal_catalogo (id_persona, dni, nombre_completo, rol_principal, activo, creado_por)
-        VALUES (%(dni)s, %(dni)s, %(name)s, %(role)s, 1, 'ADMIN')
-        ON DUPLICATE KEY UPDATE nombre_completo=%(name)s, rol_principal=%(role)s
-        """
-        try:
-            self.db.execute(query, data)
-        except Exception as e:
-            print(f"[ERROR DB] {e}")
+        """CRUD: Alta de Personal (MODO MOCK EXCLUSIVO)."""
+        print(f"[MOCK] Guardando persona {data['name']}")
+        # --- BD Comentada ---
         
         # Backup local
         self._db_master_people.insert(0, data)
@@ -293,34 +413,18 @@ class MockApiClient:
         return True
 
     def upsert_equipment(self, data):
-        """CRUD: Alta/Edición de Equipo en MySQL."""
-        print(f"[DB] Admin CRUD: Guardando equipo {data['name']}")
-        query = """
-        INSERT INTO tbl_equipos_catalogo (id_equipo, nombre_equipo, tipo_equipo, es_critico, activo, creado_por)
-        VALUES (%(name)s, %(name)s, %(type)s, %(assigned)s, 1, 'ADMIN')
-        ON DUPLICATE KEY UPDATE tipo_equipo=%(type)s
-        """
-        try:
-            self.db.execute(query, data)
-        except Exception as e:
-            print(f"[ERROR DB] {e}")
+        """CRUD: Alta de Equipo (MODO MOCK EXCLUSIVO)."""
+        print(f"[MOCK] Guardando equipo {data['name']}")
+        # --- BD Comentada ---
         
         self._db_master_equipment.insert(0, data)
         self._save_persistence()
         return True
 
     def upsert_supply(self, data):
-        """CRUD: Alta/Edición de Insumo en MySQL."""
-        print(f"[DB] Admin CRUD: Guardando insumo {data['item']}")
-        query = """
-        INSERT INTO tbl_stock_inventario (id_stock, id_expediente, item, unidad, stock_inicial, stock_minimo, fecha_operativa, registrado_por)
-        VALUES (%(item)s, 'CATALOGO', %(item)s, %(unit)s, 1000, %(min)s, CURDATE(), 'ADMIN')
-        ON DUPLICATE KEY UPDATE stock_minimo=%(min)s, unidad=%(unit)s
-        """
-        try:
-            self.db.execute(query, data)
-        except Exception as e:
-            print(f"[ERROR DB] {e}")
+        """CRUD: Alta de Insumo (MODO MOCK EXCLUSIVO)."""
+        print(f"[MOCK] Guardando insumo {data['item']}")
+        # --- BD Comentada ---
             
         self._db_master_supplies.insert(0, data)
         self._save_persistence()
@@ -360,10 +464,140 @@ class MockApiClient:
         print(f"[MOCK] Enviando Signal 'CheckPermisos' para {project_id}. Data: {permisos_data}")
         return True
 
-    def send_signal_parte_diario(self, project_id, report_data):
-        """Signal: Ing Campo envía parte diario."""
-        print(f"[MOCK] Enviando Signal 'ParteDiario' para {project_id}. Data: {report_data}")
+    # --- MOTOR DE EMERGENCIA (SMS / SATELITAL) ---
+
+    def encode_for_emergency_channel(self, project_id, report_data):
+        """Genera un string comprimido para canales de bajo ancho de banda (SMS/Sat)."""
+        op_code = report_data.get('op', 'UNK')[:3].upper()
+        # Mock encoding: ABND:[ID]:[OP]:[DESC_LEN]:[CHECKSUM]
+        desc_summary = report_data.get('desc', '')[:10]
+        checksum = sum(ord(c) for c in desc_summary) % 100
+        encoded = f"ABND:{project_id}:{op_code}:{len(desc_summary)}:{checksum}"
+        return encoded.upper()
+
+    def simulate_emergency_tx(self, channel, encoded_msg):
+        """Simula la transmisión por un canal no-IP."""
+        print(f"[MOCK] Transmitiendo vía {channel}: {encoded_msg}")
+        # Simular delay de satélite o red de texto
+        time.sleep(2)
+        return True
+
+    def send_signal_parte_diario(self, project_id, report_data, channel="INTERNET", user_id="unknown", user_role="unknown"):
+        """Signal: Ing Campo envía parte diario con selección de canal."""
+        
+        # Registrar evento de auditoría
+        self.audit.log_event(
+            user_id=user_id,
+            user_role=user_role,
+            event_type="SIGNAL_SENT",
+            entity="POZO",
+            entity_id=project_id,
+            new_state=report_data,
+            metadata={"channel": channel, "signal": "ParteDiario"}
+        )
+
+        if channel == "INTERNET" and not self._is_online:
+            item = {
+                "id": f"sync_{int(time.time())}",
+                "project_id": project_id,
+                "type": "PARTE_DIARIO",
+                "data": report_data,
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M")
+            }
+            self._outbox.append(item)
+            self._save_persistence()
+            return {"status": "QUEUED", "msg": "Guardado en Outbox (Sin conexión)."}
+
+        if channel in ["SMS", "SATELITAL"]:
+            encoded = self.encode_for_emergency_channel(project_id, report_data)
+            self.simulate_emergency_tx(channel, encoded)
+            
+            # Guardar en "Inundación Central" (Simulación Receptor)
+            self._emergency_inbox.insert(0, {
+                "id": f"rec_{int(time.time())}",
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "channel": channel,
+                "project_id": project_id,
+                "raw_code": encoded,
+                "decoded_data": report_data,
+                "status": "DECODED"
+            })
+            self._save_persistence()
+            
+            return {"status": "EMERGENCY_SENT", "msg": f"Enviado vía {channel}: {encoded}"}
+
+        # Flujo Normal Online
+        print(f"[MOCK] Enviando Signal 'ParteDiario' via {channel} para {project_id}.")
         time.sleep(1.5)
+        return {"status": "SENT", "msg": "Parte enviado exitosamente por Internet"}
+
+    # --- LOGICA DE SINCRONIZACION & CONECTIVIDAD ---
+
+    def set_connectivity(self, online: bool):
+        self._is_online = online
+        return f"Modo {'Online' if online else 'Offline'} activado."
+
+    def is_online(self):
+        return self._is_online
+
+    def get_sync_count(self):
+        return len(self._outbox)
+
+    def synchronize(self):
+        """Procesa la cola de sincronización."""
+        if not self._is_online:
+            return False, "No hay conexión para sincronizar."
+        
+        count = len(self._outbox)
+        if count == 0:
+            return True, "No hay datos pendientes."
+
+        # Simular procesamiento
+        time.sleep(2)
+        self._outbox = []
+        self._save_persistence()
+        return True, f"Sincronizados {count} eventos exitosamente."
+
+    def get_emergency_inbox(self):
+        """Retorna los mensajes recibidos por canales de emergencia."""
+        return self._emergency_inbox
+
+    def manual_override_gate(self, project_id, gate_id, reason, user_id="unknown", user_role="unknown"):
+        """Permite forzar un Gate operativo en modo offline."""
+        
+        # 0. Registrar Override en Tabla Dedicada
+        query = """
+            INSERT INTO operational_overrides (id_pozo, gate_id, id_usuario_autoriza, motivo_obligatorio)
+            VALUES (%s, %s, %s, %s)
+        """
+        self.db.execute(query, (project_id, gate_id, user_id, reason))
+
+        # 1. Registrar Evento de Auditoría
+        self.audit.log_event(
+            user_id=user_id,
+            user_role=user_role,
+            event_type="OPERATIONAL_OVERRIDE",
+            entity="POZO",
+            entity_id=project_id,
+            new_state={"gate": gate_id, "reason": reason},
+            metadata={"action": "manual_override"}
+        )
+
+        item = {
+            "id": f"sync_ov_{int(time.time())}",
+            "project_id": project_id,
+            "type": "GATE_OVERRIDE",
+            "data": {"gate": gate_id, "reason": reason},
+            "ts": datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        self._outbox.append(item)
+        
+        # Guardar en cache local para que la UI refleje el cambio de inmediato
+        if project_id not in self._offline_cache:
+            self._offline_cache[project_id] = {}
+        self._offline_cache[project_id][gate_id] = True
+        
+        self._save_persistence()
         return True
 
     # --- CHAT OPERATIVO & IA ASSISTANT ---
@@ -399,7 +633,7 @@ class MockApiClient:
                     f"   - Yacimiento: {p['yacimiento']}\n"
                     f"   - Estado: `{p['estado_proyecto']}` | Avance: {p['progreso']}%\n"
                 )
-            response_msg += "\n¿Deseas el detalle técnico de algún pozo en particular?"
+            response_msg += "\n¿Deseas el detalle técnico de algún pozo en particular? O puedes pedirme un 'Análisis de Situación'."
 
         # 2. CONOCIMIENTO INTEGRAL DEL PROCESO (Documento Inicial P&A)
         elif any(word in msg_lower for word in ["proceso", "ciclo", "etapa", "pasos", "documento inicial", "fases", "abandono"]):
@@ -468,6 +702,13 @@ class MockApiClient:
                         response_msg += f"- {t['type']} ({t['driver']}): {t['status']} (Arribo: {t['time_plan']})\n"
             else:
                 response_msg = "🤖 Debes estar en el detalle de un pozo para ver su logística o stock."
+
+        elif any(word in msg_lower for word in ["analiza", "recomienda", "hacer", "estado", "situacion", "conclusión", "qué hago"]):
+            if project:
+                response_msg = f"🤖 **Análisis de AbandonPro para {target_project}:**\n\n"
+                response_msg += self.analyze_project_status(target_project)
+            else:
+                response_msg = "🤖 Por favor selecciona un pozo para que pueda analizar su estado operativo actual."
 
         # 5. FALLBACK
         if not response_msg:

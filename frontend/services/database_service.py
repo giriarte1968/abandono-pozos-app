@@ -16,18 +16,31 @@ class DatabaseService:
         self.db_name = os.getenv("MYSQL_DATABASE", "pna_system")
 
     def _get_connection(self):
-        return pymysql.connect(
-            host=self.host,
-            port=self.port,
-            user=self.user,
-            password=self.password,
-            database=self.db_name,
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=True
-        )
+        try:
+            return pymysql.connect(
+                host=self.host,
+                port=self.port,
+                user=self.user,
+                password=self.password,
+                database=self.db_name,
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=True,
+                connect_timeout=2 # Quick fail
+            )
+        except Exception:
+            return None
+
+    def is_available(self):
+        conn = self._get_connection()
+        if conn:
+            conn.close()
+            return True
+        return False
 
     def fetch_all(self, query, params=None):
         conn = self._get_connection()
+        if not conn:
+            return []
         try:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
@@ -37,6 +50,8 @@ class DatabaseService:
 
     def fetch_one(self, query, params=None):
         conn = self._get_connection()
+        if not conn:
+            return None
         try:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
@@ -46,6 +61,8 @@ class DatabaseService:
 
     def execute(self, query, params=None):
         conn = self._get_connection()
+        if not conn:
+            return 0
         try:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)

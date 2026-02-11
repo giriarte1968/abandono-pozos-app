@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
+import time
 from services.mock_api_client import MockApiClient
 from components.stepper import render_stepper
 from services.weather_service import WeatherService
+from services.evidence_service import EvidenceService
+from views.well_timeline import render_timeline
 import folium
 from streamlit_folium import st_folium
 
@@ -14,41 +17,11 @@ def render_view(project_id):
         st.session_state['api_client'] = api
         
     weather_service = WeatherService()
+    evidence_service = EvidenceService(api.db, api.audit)
     
-    # --- CHAT OPERATIVO EN SIDEBAR ---
-    with st.sidebar:
-        st.markdown("### 💬 Chat Operativo")
-        st.caption(f"Proyecto: {project_id} | Rol: {st.session_state.get('user_role', 'Supervisor')}")
-        
-        # Historial de Chat
-        if f'chat_history_{project_id}' not in st.session_state:
-            st.session_state[f'chat_history_{project_id}'] = api.get_chat_history(project_id)
-        
-        chat_container = st.container(height=500)
-        
-        # Renderizar historial con estilos
-        for msg in st.session_state[f'chat_history_{project_id}']:
-            is_ia = msg['origen'] == 'IA'
-            with chat_container:
-                if is_ia:
-                    st.chat_message("assistant", avatar="🤖").write(msg['msg'])
-                else:
-                    st.chat_message("user").write(f"**{msg['rol']}**: {msg['msg']}")
-        
-        # Input de chat
-        if prompt := st.chat_input("Pregunta al asistente o reporta..."):
-            # Agregar mensaje de usuario
-            user_role = st.session_state.get('user_role', 'Supervisor')
-            result = api.send_chat_message(project_id, user_role, prompt)
-            
-            st.session_state[f'chat_history_{project_id}'].append(result['sent'])
-            
-            # Si hay respuesta IA, agregarla
-            if result['response']:
-                st.session_state[f'chat_history_{project_id}'].append(result['response'])
-            
-            st.rerun()
-            
+    username = st.session_state.get('username', 'unknown')
+    user_role = st.session_state.get('user_role', 'unknown')
+    
     # 1. Obtener datos del proyecto
     project = api.get_project_detail(project_id)
     
@@ -76,24 +49,41 @@ def render_view(project_id):
         col_ctx3.metric("👥 Responsable", project.get('responsable', 'N/A'))
 
     # --- REGULATORY GATES (Hybrid Model) ---
-    with st.container(border=True):
-        st.markdown("##### 🛡️ Status de Gates Regulatorios (External Truth)")
-        g_col1, g_col2, g_col3 = st.columns(3)
-        
-        # Gate 1: DTM
-        dtm_ok = project.get('dtm_confirmado', False)
-        g_col1.markdown(f"**Gate DTM / Apertura:**")
-        g_col1.markdown(f"{'🟢 ABIERTO' if dtm_ok else '🔴 BLOQUEADO'} (DTM_GATEWAY)")
-        
-        # Gate 2: Personal
-        pers_ok = project.get('personal_confirmado_hoy', False)
-        g_col2.markdown(f"**Gate Personal Presente:**")
-        g_col2.markdown(f"{'🟢 ABIERTO' if pers_ok else '🔴 BLOQUEADO'} (CONTROL_ACCESO)")
-        
-        # Gate 3: HSE
-        hse_ok = not any(p['critical'] and (not p.get('medical_ok') or not p.get('induction_ok')) for p in project.get('personnel_list', []))
-        g_col3.markdown(f"**Gate HSE Compliance:**")
-        g_col3.markdown(f"{'🟢 CUMPLIDO' if hse_ok else '🚨 FALLA CRÍTICA'} (SISTEMA_HSE)")
+    st.markdown("##### 🛡️ Status de Gates Regulatorios (External Truth)")
+    if not api.is_online():
+        st.warning("📡 **MODO OFFLINE**: Mostrando último estado conocido. Los 'Overrides' se sincronizarán al recuperar señal.")
+    
+    g_col1, g_col2, g_col3 = st.columns(3)
+    
+    # Cache de Overrides
+    cache = api._offline_cache.get(project_id, {})
+
+    # Gate 1: DTM
+    dtm_ok = project.get('dtm_confirmado', False) or cache.get('GATE_DTM')
+    g_col1.markdown(f"**Gate DTM / Apertura:**")
+    g_col1.markdown(f"{'🟢 ABIERTO' if dtm_ok else '🔴 BLOQUEADO'}")
+    if not dtm_ok and not api.is_online():
+        if g_col1.button("Forzar Apertura (Offline)", key="ov_dtm"):
+             api.manual_override_gate(project_id, "GATE_DTM", "Apertura forzada por falta de señal en locación.", user_id=username, user_role=user_role)
+             st.rerun()
+    
+    # Gate 2: Personal
+    pers_ok = project.get('personal_confirmado_hoy', False) or cache.get('GATE_PERS')
+    g_col2.markdown(f"**Gate Personal Presente:**")
+    g_col2.markdown(f"{'🟢 ABIERTO' if pers_ok else '🔴 BLOQUEADO'}")
+    if not pers_ok and not api.is_online():
+        if g_col2.button("Forzar Apertura (Offline)", key="ov_pers"):
+             api.manual_override_gate(project_id, "GATE_PERS", "Ingreso manual validado físicamente (Sin señal).", user_id=username, user_role=user_role)
+             st.rerun()
+
+    # Gate 3: HSE
+    hse_ok = (not any(p['critical'] and (not p.get('medical_ok') or not p.get('induction_ok')) for p in project.get('personnel_list', []))) or cache.get('GATE_HSE')
+    g_col3.markdown(f"**Gate HSE Compliance:**")
+    g_col3.markdown(f"{'🟢 CUMPLIDO' if hse_ok else '🚨 FALLA CRÍTICA'}")
+    if not hse_ok and not api.is_online():
+        if g_col3.button("Forzar Apertura (Offline)", key="ov_hse"):
+             api.manual_override_gate(project_id, "GATE_HSE", "Cumplimiento validado por supervisor (Sin señal).", user_id=username, user_role=user_role)
+             st.rerun()
 
     # 3. Stepper de Progreso (mejorado con tooltips)
     render_stepper(project['status'])
@@ -169,6 +159,42 @@ def render_view(project_id):
         col_hdr3.markdown(f"**Estado:**\n`{project['status']}`")
         col_hdr4.markdown(f"**Legajo:**\nv2.1 (Digital)")
     
+    # --- TELEMETRÍA EN VIVO (EDR) ---
+    telemetry = project.get('rig_telemetry')
+    if telemetry:
+        with st.container(border=True):
+            st.markdown(f"#### 🛰️ AbandonPro EDR: Telemetría de Alta Fidelidad")
+            
+            # Badge de Estado Rig
+            rig_state = telemetry['rig_state']
+            if rig_state == 'ALARM_STOP':
+                st.error("🚨 RIG STATUS: EMERGENCY STOP / ALARM")
+            else:
+                st.success(f"🟢 RIG STATUS: {rig_state}")
+
+            # --- FILA 1: MECÁNICA & HOISTING ---
+            st.markdown("##### 🏗️ Mechanical & Hoisting")
+            m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+            m_col1.metric("Hook Load", f"{telemetry['hook_load']:.1f} {telemetry['hook_load_unit']}")
+            m_col2.metric("Weight on Bit", f"{telemetry['wob']:.1f} {telemetry['wob_unit']}")
+            m_col3.metric("Torque", f"{telemetry['torque']:.1f} {telemetry['torque_unit']}")
+            m_col4.metric("Bit Depth", f"{telemetry['bit_depth']:.1f} {telemetry['bit_depth_unit']}")
+
+            # --- FILA 2: HIDRÁULICA & PILETAS ---
+            st.markdown("##### 🧪 Hydraulic & Pits (PVT)")
+            h_col1, h_col2, h_col3, h_col4 = st.columns(4)
+            h_col1.metric("Pump Pressure", f"{telemetry['pump_pressure']:.1f} {telemetry['pump_pressure_unit']}")
+            h_col2.metric("Pump SPM", f"{telemetry['spm']} spm")
+            h_col3.metric("Pit Volume", f"{telemetry['pit_volume']:.1f} {telemetry['pit_volume_unit']}")
+            h_col4.metric("Trip Tank", f"{telemetry['trip_tank']:.1f} {telemetry['trip_tank_unit']}")
+
+            # --- FILA 3: INTEGRIDAD & GAS ---
+            st.markdown("##### 🛡️ Integrity & Safety")
+            s_col1, s_col2, s_col3 = st.columns([1, 1, 2])
+            s_col1.metric("Annular Pressure", f"{telemetry['annular_pressure']:.1f} {telemetry['annular_pressure_unit']}")
+            s_col2.metric("Total Gas", f"{telemetry['gas_total']:.2f} {telemetry['gas_unit']}")
+            s_col3.info(f"Última transmisión: {telemetry['last_update']} (High Frequency Stream)")
+
     st.subheader("⚡ Control Operativo Diario")
     
     # --- TAB DE OPERACIONES ---
@@ -418,28 +444,9 @@ def render_view(project_id):
                 else:
                     st.success("✅ VIGENTE")
 
-    # --- 6. TRUTH LOG (SISTEMA) ---
+    # --- 6. TRUTH LOG (AUDIT TIMELINE) ---
     with tab_truth:
-        st.markdown("### 🗂️ Truth Sources (Event Log)")
-        st.caption("Eventos recibidos de sistemas externos desacoplados (External Truth). Estos eventos abren o cierran los Gates Regulatorios.")
-        
-        truth_log = project.get('external_truth_log', [])
-        if truth_log:
-            df_log = pd.DataFrame(truth_log)
-            st.dataframe(
-                df_log[['ts', 'source', 'event', 'payload', 'status']],
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "ts": "Timestamp",
-                    "source": "Fuente Verdad",
-                    "event": "Evento Recibido",
-                    "payload": "Detalle / Valor",
-                    "status": "Efecto Gate"
-                }
-            )
-        else:
-            st.info("Esperando señales de verdad externa...")
+        render_timeline(project_id)
 
     # --- 7. PARTE DIARIO ---
     with tab_reporte:
@@ -474,11 +481,56 @@ def render_view(project_id):
                 
                 desc = st.text_area("Descripción de Actividades")
                 
+                # --- NUEVO: Selección de Canal de Comunicación ---
+                st.divider()
+                st.markdown("##### 📡 Canal de Transmisión")
+                channels = ["INTERNET", "SMS (GSM)", "SATELITAL (Iridium/Garmin)"]
+                if not api.is_online():
+                    st.info("💡 Detectado: **MODO OFFLINE**. Puedes guardar en cola o usar una salida de emergencia.")
+                
+                selected_ch_label = st.radio("Seleccionar Vía de Envío:", channels, horizontal=True)
+                channel_map = {"INTERNET": "INTERNET", "SMS (GSM)": "SMS", "SATELITAL (Iridium/Garmin)": "SATELITAL"}
+                target_channel = channel_map[selected_ch_label]
+
+                if target_channel != "INTERNET":
+                    encoded_preview = api.encode_for_emergency_channel(project['id'], {"op": op, "desc": desc})
+                    st.code(encoded_preview, language="markdown")
+                    st.caption("☝️ *Mensaje comprimido generado para canal de bajo ancho de banda.*")
+
+                # --- NUEVA SECCIÓN: CARGA DE EVIDENCIA ---
+                st.divider()
+                st.markdown("##### 📁 Evidencia Digital (Mandatorio)")
+                st.caption("Cargue fotos o videos (máx 90s) para certificar la operación.")
+                
+                uploaded_file = st.file_uploader("Adjuntar Evidencia", type=["jpg", "png", "jpeg", "mp4", "pdf"])
+                if uploaded_file:
+                    if st.button("Confirmar Carga de Evidencia", type="secondary"):
+                        res_ev = evidence_service.upload_evidence(
+                            uploaded_file, project_id, project['status'], 
+                            user_id=username, user_role=user_role
+                        )
+                        st.success(f"Evidencia certificada: {res_ev['hash'][:10]}...")
+
                 if st.form_submit_button("Presentar Parte (Final)", type="primary"):
-                    api.send_signal_parte_diario(project['id'], {"op": op, "desc": desc})
-                    st.balloons()
-                    st.success("Parte Enviado. Proceso avanzado.")
-                    time.sleep(1)
+                    res = api.send_signal_parte_diario(
+                        project['id'], 
+                        {"op": op, "desc": desc}, 
+                        channel=target_channel,
+                        user_id=username,
+                        user_role=user_role
+                    )
+                    
+                    if res.get('status') == 'QUEUED':
+                        st.info(f"📥 {res['msg']}")
+                        st.warning("El reporte se enviará automáticamente cuando recuperes conexión.")
+                    elif res.get('status') == 'EMERGENCY_SENT':
+                        st.success(f"📟 {res['msg']}")
+                        st.toast("Transmisión de emergencia completada")
+                    else:
+                        st.balloons()
+                        st.success(res['msg'])
+                    
+                    time.sleep(2)
                     st.rerun()
     
     # Disclaimer Weather Footer

@@ -13,6 +13,15 @@ def render_view():
         "📍 Pozos", "👷 Personal", "🚜 Equipos", "📦 Insumos", "📅 Campañas"
     ])
 
+    def ensure_df_columns(df, expected_cols):
+        if df.empty:
+            return pd.DataFrame(columns=expected_cols)
+        # Asegurar que todas las columnas existan (aunque sea con None)
+        for col in expected_cols:
+            if col not in df.columns:
+                df[col] = None
+        return df[expected_cols]
+
     # --- 1. POZOS ---
     with tab_pozos:
         st.subheader("Gestión de Pozos")
@@ -41,7 +50,9 @@ def render_view():
                     st.rerun()
 
         # Listado Actual
-        st.dataframe(df_pozos[['id', 'nombre', 'yacimiento', 'estado_proyecto', 'responsable']], use_container_width=True)
+        cols_pozos = ['id', 'nombre', 'yacimiento', 'estado_proyecto', 'responsable']
+        df_pozos_display = ensure_df_columns(df_pozos, cols_pozos)
+        st.dataframe(df_pozos_display, use_container_width=True)
 
     # --- 2. PERSONAL ---
     with tab_personal:
@@ -72,7 +83,9 @@ def render_view():
                     st.success(f"Recurso {per_name} registrado")
                     st.rerun()
 
-        st.dataframe(df_per[['name', 'role', 'category', 'medical_ok', 'induction_ok']], use_container_width=True)
+        cols_per = ['name', 'role', 'category', 'medical_ok', 'induction_ok']
+        df_per_display = ensure_df_columns(df_per, cols_per)
+        st.dataframe(df_per_display, use_container_width=True)
 
     # --- 3. EQUIPOS ---
     with tab_equipos:
@@ -97,7 +110,9 @@ def render_view():
                     st.success(f"Equipo {e_name} registrado")
                     st.rerun()
 
-        st.dataframe(df_eq[['name', 'type', 'category', 'status']], use_container_width=True)
+        cols_eq = ['name', 'type', 'category', 'status']
+        df_eq_display = ensure_df_columns(df_eq, cols_eq)
+        st.dataframe(df_eq_display, use_container_width=True)
 
     # --- 4. INSUMOS ---
     with tab_insumos:
@@ -118,7 +133,9 @@ def render_view():
                     st.success(f"Insumo {i_name} guardado")
                     st.rerun()
 
-        st.dataframe(df_ins[['item', 'unit', 'min']], use_container_width=True)
+        cols_ins = ['item', 'unit', 'min']
+        df_ins_display = ensure_df_columns(df_ins, cols_ins)
+        st.dataframe(df_ins_display, use_container_width=True)
 
     # --- 5. CAMPAÑAS ---
     with tab_campanas:

@@ -1,0 +1,139 @@
+{
+    "projects": [
+        {
+            "id": "X-123",
+            "nombre": "Pozo X-123",
+            "yacimiento": "Los Perales",
+            "campana": "Campa\u00f1a Norte 2024",
+            "estado_proyecto": "EN_EJECUCION",
+            "progreso": 45,
+            "proximo_hito": "Cementaci\u00f3n Faja 2",
+            "responsable": "Juan P\u00e9rez",
+            "lat": -46.4328,
+            "lon": -67.5267,
+            "workflow_status": "WAITING_DAILY_REPORT"
+        },
+        {
+            "id": "A-321",
+            "nombre": "Pozo A-321",
+            "yacimiento": "Las Heras",
+            "campana": "Campa\u00f1a Norte 2024",
+            "estado_proyecto": "PLANIFICADO",
+            "progreso": 10,
+            "proximo_hito": "Asignaci\u00f3n de Equipos",
+            "responsable": "Maria Gonzalez",
+            "lat": -46.5428,
+            "lon": -68.9344,
+            "workflow_status": "WAITING_DTM_ASSIGNMENT"
+        },
+        {
+            "id": "Z-789",
+            "nombre": "Pozo Z-789",
+            "yacimiento": "El Tordillo",
+            "campana": "Campa\u00f1a Sur 2024",
+            "estado_proyecto": "BLOQUEADO",
+            "progreso": 60,
+            "proximo_hito": "Resoluci\u00f3n Incidencia HSE",
+            "responsable": "Carlos Ruiz",
+            "lat": -45.8569,
+            "lon": -67.4853,
+            "workflow_status": "BLOCKED_BY_INCIDENT"
+        },
+        {
+            "id": "M-555",
+            "nombre": "Pozo M-555",
+            "yacimiento": "Ca\u00f1ad\u00f3n Seco",
+            "campana": "Campa\u00f1a Sur 2024",
+            "estado_proyecto": "EN_ESPERA_APROBACION",
+            "progreso": 95,
+            "proximo_hito": "Firma Auditor\u00eda Final",
+            "responsable": "Juan P\u00e9rez",
+            "lat": -46.5337,
+            "lon": -67.6172,
+            "workflow_status": "WAITING_FINAL_APPROVAL"
+        }
+    ],
+    "people": [
+        {
+            "name": "Juan P\u00e9rez",
+            "role": "Supervisor",
+            "category": "DIRECTO",
+            "medical_ok": true,
+            "induction_ok": true
+        },
+        {
+            "name": "Maria Gonzalez",
+            "role": "HSE",
+            "category": "DIRECTO",
+            "medical_ok": true,
+            "induction_ok": true
+        },
+        {
+            "name": "Sebastian Cannes",
+            "role": "Gerente",
+            "category": "DIRECTO",
+            "medical_ok": true,
+            "induction_ok": true
+        },
+        {
+            "name": "Roberto Ruiz",
+            "role": "Operario",
+            "category": "INDIRECTO",
+            "medical_ok": true,
+            "induction_ok": false
+        }
+    ],
+    "equipment": [
+        {
+            "name": "Pulling Unit #01",
+            "type": "PULLING",
+            "category": "DIRECTO",
+            "status": "OPERATIVO"
+        },
+        {
+            "name": "Cisterna 25m3 #1",
+            "type": "CISTERNA",
+            "category": "INDIRECTO",
+            "status": "OPERATIVO"
+        },
+        {
+            "name": "Camion de Apoyo",
+            "type": "APERTURA",
+            "category": "INDIRECTO",
+            "status": "DISPONIBLE"
+        }
+    ],
+    "supplies": [
+        {
+            "item": "Cemento (Bolsas)",
+            "unit": "u",
+            "min": 50
+        },
+        {
+            "item": "Agua Industrial",
+            "unit": "m3",
+            "min": 10
+        },
+        {
+            "item": "Gasoil",
+            "unit": "lts",
+            "min": 500
+        }
+    ],
+    "sync_outbox": [],
+    "offline_cache": {},
+    "emergency_inbox": [
+        {
+            "id": "rec_1770831167",
+            "ts": "2026-02-11 14:32",
+            "channel": "SATELITAL",
+            "project_id": "X-123",
+            "raw_code": "ABND:X-123:CEM:0:0",
+            "decoded_data": {
+                "op": "CEMENTACION",
+                "desc": ""
+            },
+            "status": "DECODED"
+        }
+    ]
+}

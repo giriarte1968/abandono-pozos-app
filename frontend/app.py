@@ -58,8 +58,8 @@ def main_router():
                 st.rerun()
                 
     elif page == 'Logística':
-        st.title("🚧 Módulo de Logística (Próximamente)")
-        st.info("Funcionalidad planificada para el siguiente Hito.")
+        from views import logistics
+        logistics.render_view()
         
     elif page == 'Documentación':
         st.title("🚧 Gestión Documental (Próximamente)")
@@ -67,6 +67,10 @@ def main_router():
     elif page == 'Datos Maestros':
         from views import admin_master_data
         admin_master_data.render_view()
+        
+    elif page == 'Auditoría':
+        from views import global_audit
+        global_audit.render_view()
         
     else:
         st.warning(f"Página no encontrada: {page}")

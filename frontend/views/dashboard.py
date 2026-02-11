@@ -51,4 +51,20 @@ def render_view():
         - **Pozo A-321**: Demora en entrega de cemento (Logística).
         """)
 
+    # 3. Auditoría e Integridad
+    st.divider()
+    st.subheader("🛡️ Integridad Regulatoria")
+    from services.audit_service import AuditService
+    audit = AuditService(api.db)
+    
+    is_ok, errors = audit.verify_integrity()
+    
+    c_audit1, c_audit2 = st.columns([1, 2])
+    if is_ok:
+        c_audit1.success("✅ CADENA INMUTABLE VÁLIDA")
+        c_audit2.info("Todos los hashes de auditoría coinciden con los registros históricos. No se detectan alteraciones.")
+    else:
+        c_audit1.error(f"🚨 RUPTURA DE INTEGRIDAD ({len(errors)})")
+        c_audit2.warning(f"Se han detectado inconsistencias en la cadena de hashes. {errors[0] if errors else ''}")
+
     st.info("Para ver detalle individual, navegue a 'Proyectos'.")
