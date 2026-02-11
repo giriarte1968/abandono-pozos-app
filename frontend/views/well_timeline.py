@@ -59,18 +59,20 @@ def render_timeline(project_id):
                     state = json.loads(event['estado_nuevo']) if isinstance(event['estado_nuevo'], str) else event['estado_nuevo']
                     file_name = state.get('file_name') or state.get('file')
                     
-                    # Mapping de imágenes realistas para el MOCK
+                    # Mapping de imágenes realistas para el MOCK (Unsplash - Más robustas)
                     image_map = {
-                        "X-123_pre_work_site.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Oil_Well_Pump_Jack.jpg/640px-Oil_Well_Pump_Jack.jpg",
-                        "Z-789_leakage_cellar.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Oil_spill_on_the_ground.jpg/640px-Oil_spill_on_the_ground.jpg",
-                        "M-555_capped_wellhead.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Oil_Well_Head_1.jpg/640px-Oil_Well_Head_1.jpg"
+                        "X-123_pre_work_site.jpg": "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&q=80&w=600",
+                        "Z-789_leakage_cellar.jpg": "https://images.unsplash.com/photo-1622322062699-e659350410a5?auto=format&fit=crop&q=80&w=600",
+                        "M-555_capped_wellhead.jpg": "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?auto=format&fit=crop&q=80&w=600"
                     }
-                    img_url = image_map.get(file_name, "https://img.freepik.com/free-photo/oil-rig-worker-pointing-silhouette_23-2148110294.jpg")
+                    img_url = image_map.get(file_name)
                     
-                    if file_name:
-                        col2.image(img_url, width=200, caption="Preview: " + file_name)
-                except:
-                    pass
+                    if file_name and img_url:
+                        col2.image(img_url, caption="Preview: " + file_name, use_container_width=True)
+                    else:
+                        col2.warning(f"Evidencia no encontrada para {file_name}")
+                except Exception as ex:
+                    col2.error(f"Error en miniatura: {str(ex)}")
 
             # Expander para detalles técnicos (Hashes y JSON)
             with col2.expander("Ver Detalles Técnicos y Evidencia Full"):
@@ -79,10 +81,16 @@ def render_timeline(project_id):
                 # Imagen Full si es Evidencia
                 if event['tipo_evento'] == "EVIDENCE_UPLOAD":
                     st.markdown("##### 🖼️ Inspección de Evidencia (Full Resolution)")
-                    # En mock, usamos la imagen mapeada en tamaño completo
-                    full_img_url = image_map.get(file_name, "https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg")
-                    st.image(full_img_url, caption=f"Evidencia Certificada: {file_name}")
-                    st.info(f"Integridad de archivo verificada: `{file_name}`")
+                    try:
+                        # Aseguramos que image_map esté disponible aquí también
+                        full_img_url = image_map.get(file_name)
+                        if full_img_url:
+                            st.image(full_img_url, caption=f"Evidencia Certificada: {file_name}", use_container_width=True)
+                            st.info(f"Integridad de archivo verificada: `{file_name}`")
+                        else:
+                            st.warning(f"No hay mapeo de imagen para {file_name}")
+                    except NameError:
+                        st.error("Error: image_map no definido en este contexto")
 
                 c_json1, c_json2 = st.columns(2)
                 if event['estado_anterior']:
