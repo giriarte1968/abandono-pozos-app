@@ -97,25 +97,19 @@ def render_view():
                 st.markdown("---")
                 st.markdown("##### 🖼️ Evidencia Certificada (Full)")
                 try:
+                    import os
                     state = json.loads(ev['estado_nuevo']) if isinstance(ev['estado_nuevo'], str) else ev['estado_nuevo']
                     file_name = state.get('file_name') or state.get('file')
                     if file_name:
-                        file_path = f"storage/evidence/{file_name}"
-                        # En mock siempre mostramos la imagen si está mapeada
-                        image_map = {
-                            "X-123_pre_work_site.jpg": "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&q=80&w=800",
-                            "Z-789_leakage_cellar.jpg": "https://images.unsplash.com/photo-1622322062699-e659350410a5?auto=format&fit=crop&q=80&w=800",
-                            "M-555_capped_wellhead.jpg": "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?auto=format&fit=crop&q=80&w=800"
-                        }
-                        img_url = image_map.get(file_name)
+                        # Buscamos archivo local en storage/evidence/
+                        local_path = os.path.join(os.getcwd(), "storage", "evidence", file_name)
                         
-                        if img_url:
-                            st.image(img_url, caption=f"Evidencia Certificada (Full): {file_name}", use_container_width=True)
+                        if os.path.exists(local_path):
+                            st.image(local_path, caption=f"Evidencia Certificada (Full): {file_name}")
                             st.info(f"Archivo físico verificado en servidor: `{file_name}`")
                         else:
-                            st.warning(f"No hay miniatura disponible para: {file_name}")
+                            st.warning(f"Evidencia subida pero archivo no encontrado localmente: {file_name}")
                 except Exception as ex:
-                    st.error(f"Captura de evidencia fallida: {str(ex)}")
                     st.error(f"Error al cargar evidencia: {str(ex)}")
 
             c1, c2 = st.columns(2)
