@@ -178,5 +178,20 @@
         "ip_origen": null,
         "hash_previo": "ef222b73ba36fd495a2231ceb624bd947f32f74e14148d0d0168c99bc1f03405",
         "hash_evento": "28f196f1db28b0d11b638ed8b858ace4575749afa39390a4ecb40e9ef118cc21"
+    },
+    {
+        "id": 13,
+        "timestamp_utc": "2026-02-11T18:40:29.495937",
+        "id_usuario": "admin",
+        "rol_usuario": "Administrativo",
+        "tipo_evento": "LOGIN_SUCCESS",
+        "entidad": "USUARIO",
+        "entidad_id": "admin",
+        "estado_anterior": null,
+        "estado_nuevo": null,
+        "metadata": "{\"nombre\": \"Administrador\"}",
+        "ip_origen": null,
+        "hash_previo": "28f196f1db28b0d11b638ed8b858ace4575749afa39390a4ecb40e9ef118cc21",
+        "hash_evento": "e37aa355f4b2ba670c961c26f5e03bc7414ef812dadf7c2e5d572b51bc35684d"
     }
 ]

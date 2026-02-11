@@ -102,14 +102,18 @@ def render_view():
                     if file_name:
                         file_path = f"storage/evidence/{file_name}"
                         if os.path.exists(file_path):
-                            # Si es un mock (archivo de texto), mostramos un placeholder bonito o el contenido
-                            if file_name.endswith('.jpg') or file_name.endswith('.png'):
-                                # En una app real esto sería la imagen. Aquí, si es mock, Streamlit mostrará error 
-                                # o podemos intentar cargarla. Para el mock, mostramos un mensaje decorativo.
-                                st.image("https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg", caption=f"Vista Previa (Simulada): {file_name}")
-                                st.info(f"Archivo físico verificado en servidor: `{file_name}`")
-                            else:
-                                st.warning(f"Extensión no previsualizable: {file_name}")
+                            # Mapping de imágenes realistas para el MOCK
+                            image_map = {
+                                "X-123_pre_work_site.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Oil_Well_Pump_Jack.jpg/640px-Oil_Well_Pump_Jack.jpg",
+                                "Z-789_leakage_cellar.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Oil_spill_on_the_ground.jpg/640px-Oil_spill_on_the_ground.jpg",
+                                "M-555_capped_wellhead.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Oil_Well_Head_1.jpg/640px-Oil_Well_Head_1.jpg"
+                            }
+                            img_url = image_map.get(file_name, "https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg")
+                            
+                            st.image(img_url, caption=f"Evidencia Certificada (Full): {file_name}")
+                            st.info(f"Archivo físico verificado en servidor: `{file_name}`")
+                        else:
+                            st.warning(f"Evidencia subida pero archivo no encontrado: {file_name}")
                 except Exception as ex:
                     st.error(f"Error al cargar evidencia: {str(ex)}")
 

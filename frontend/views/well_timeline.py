@@ -58,10 +58,17 @@ def render_timeline(project_id):
                 try:
                     state = json.loads(event['estado_nuevo']) if isinstance(event['estado_nuevo'], str) else event['estado_nuevo']
                     file_name = state.get('file_name') or state.get('file')
+                    
+                    # Mapping de imágenes realistas para el MOCK
+                    image_map = {
+                        "X-123_pre_work_site.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Oil_Well_Pump_Jack.jpg/640px-Oil_Well_Pump_Jack.jpg",
+                        "Z-789_leakage_cellar.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Oil_spill_on_the_ground.jpg/640px-Oil_spill_on_the_ground.jpg",
+                        "M-555_capped_wellhead.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Oil_Well_Head_1.jpg/640px-Oil_Well_Head_1.jpg"
+                    }
+                    img_url = image_map.get(file_name, "https://img.freepik.com/free-photo/oil-rig-worker-pointing-silhouette_23-2148110294.jpg")
+                    
                     if file_name:
-                        # Placeholder de industria para la miniatura
-                        col2.image("https://img.freepik.com/free-photo/oil-rig-worker-pointing-silhouette_23-2148110294.jpg", 
-                                 width=150, caption="Preview: " + file_name)
+                        col2.image(img_url, width=200, caption="Preview: " + file_name)
                 except:
                     pass
 
@@ -72,9 +79,9 @@ def render_timeline(project_id):
                 # Imagen Full si es Evidencia
                 if event['tipo_evento'] == "EVIDENCE_UPLOAD":
                     st.markdown("##### 🖼️ Inspección de Evidencia (Full Resolution)")
-                    # En mock, usamos una imagen de stock real de alta calidad
-                    st.image("https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg", 
-                             caption=f"Evidencia Certificada: {file_name}")
+                    # En mock, usamos la imagen mapeada en tamaño completo
+                    full_img_url = image_map.get(file_name, "https://img.freepik.com/free-photo/industrial-oil-pump-rig-working-dawn_23-2148110292.jpg")
+                    st.image(full_img_url, caption=f"Evidencia Certificada: {file_name}")
                     st.info(f"Integridad de archivo verificada: `{file_name}`")
 
                 c_json1, c_json2 = st.columns(2)
