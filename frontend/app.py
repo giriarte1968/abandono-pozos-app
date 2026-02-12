@@ -91,6 +91,10 @@ def main_router():
     else:
         st.warning(f"Página no encontrada: {page}")
 
+    # 4. Renderizar Chat Flotante Global (Siempre al final)
+    from components.chat import render_chat
+    render_chat()
+
 if __name__ == "__main__":
     init_session_state()
     main_router()

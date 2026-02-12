@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit_antd_components as sac
 import time
-from .chat import render_chat
+# from .chat import render_chat
 
 def render_sidebar():
     """
@@ -58,24 +58,62 @@ def render_sidebar():
             )
 
         # Renderizar Menú
-        # Mapeamos nombre de página a índice/id si fuera necesario, 
-        # pero sac.menu retorna el labelling del item seleccionado.
+        # Buscamos el index del item activo para mantener la selección visual
+        # Esto previene que se resetee al Dashboard cuando navegamos programáticamente
+        
+        # Aplanar la lista de items para buscar el index
+        flat_items = []
+        def flatten(items):
+            for item in items:
+                flat_items.append(item.label)
+                if hasattr(item, 'children') and item.children:
+                    flatten(item.children)
+        flatten(menu_items)
+        
+        try:
+            default_index = flat_items.index(current_page)
+        except ValueError:
+            # Si la página actual no está en el menú (ej: Detalle Proyecto), 
+            # no forzamos un index específico para no romper la visual.
+            # Podríamos dejarlo en 0 o buscar el padre. 
+            # Para "Detalle Proyecto", lo lógico es mantener "Proyectos" abierto/activo si se pudiera,
+            # pero sac.menu no soporta 'seleccion parcial'.
+            # Usamos index 1 (Proyectos) como fallback visual si estamos en detalle
+            if current_page == 'Detalle Proyecto':
+                 default_index = 1 # Proyectos
+            else:
+                 default_index = 0
+
+        # Renderizamos el menú.
+        # IMPORTANTE: key='sidebar_menu' permite que el estado del componente persista
+        # pero si cambiamos 'index' programáticamente (al volver de Detalle), el componente debería actualizarse.
         selected_item = sac.menu(
             items=menu_items,
-            index=0, # Podría mejorarse buscando el index del current_page
+            index=default_index,
             format_func='title',
             size='sm',
             indent=20,
-            open_index=[1, 2], # Abrir grupos por defecto
+            open_index=[1, 2],
+            key='sidebar_menu' 
         )
 
-        # Sincronizar selección del menú con session_state
-        # Solo si cambió (para evitar reruns infinitos si la lógica no es fina)
-        if selected_item and selected_item != current_page:
-            # Filtramos selects de "Padres" que no son páginas reales
-            if selected_item not in ['Operaciones', 'Control & Calidad', 'Administración']:
-                st.session_state['current_page'] = selected_item
-                st.rerun()
+    # Lógica de Navegación:
+    # Solo navegamos si el usuario HIZO CLIC en el menú.
+    # sac.menu retorna el item seleccionado.
+    # Si el item seleccionado en el menú es distinto a la página actual...
+    if selected_item != current_page:
+        # 1. Caso especial: Estamos en 'Detalle Proyecto' y el menú dice 'Proyectos' (por default_index=1)
+        #    Si el usuario NO hizo clic, selected_item será 'Proyectos' (por el index).
+        #    Para distinguir clic real de render inicial, comparamos con el estado anterior del menú si existiera,
+        #    o simplemente asumimos que si estamos en Detalle, ignoramos el primer render de 'Proyectos'.
+        
+        # Simplificación robusta:
+        # Si estamos en Detalle Proyecto y el menú selecciona Proyectos, NO hacemos nada (asumimos que es visual).
+        if current_page == 'Detalle Proyecto' and selected_item == 'Proyectos':
+            pass
+        elif selected_item not in ['Operaciones', 'Control & Calidad', 'Administración']:
+            st.session_state['current_page'] = selected_item
+            st.rerun()
 
         st.divider()
         
@@ -98,10 +136,10 @@ def render_sidebar():
                     time.sleep(1)
                     st.rerun()
         else:
-            sac.tag(label='Sincronizado', color='success', icon='check-circle')
+            sac.alert(label='Sincronizado', color='success', icon='check-circle', size='sm', variant='transparent')
 
-        # --- CHAT ---
-        render_chat()
+        # Chat removido del sidebar, ahora es flotante global
+        pass
 
         st.divider()
         
