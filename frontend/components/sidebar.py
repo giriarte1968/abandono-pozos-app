@@ -29,6 +29,9 @@ def render_sidebar():
             if st.button("🛡️ Auditoría", use_container_width=True):
                 st.session_state['current_page'] = 'Auditoría'
                 st.rerun()
+            if st.button("📜 Cumplimiento", use_container_width=True):
+                st.session_state['current_page'] = 'Cumplimiento'
+                st.rerun()
 
         if role == 'Administrativo':
             if st.button("🚚 Logística (DTM)", use_container_width=True):

@@ -71,6 +71,10 @@ def main_router():
     elif page == 'Auditoría':
         from views import global_audit
         global_audit.render_view()
+
+    elif page == 'Cumplimiento':
+        from views import compliance_view
+        compliance_view.render_view()
         
     else:
         st.warning(f"Página no encontrada: {page}")

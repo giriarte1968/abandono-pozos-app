@@ -85,6 +85,17 @@ def render_view(project_id):
              api.manual_override_gate(project_id, "GATE_HSE", "Cumplimiento validado por supervisor (Sin señal).", user_id=username, user_role=user_role)
              st.rerun()
 
+    # Gate 4: Cumplimiento Regulatorio
+    from services.compliance_service import ComplianceService
+    _compliance = ComplianceService(audit_service=api.audit)
+    _comp_summary = _compliance.get_compliance_summary(project_id)
+    
+    st.markdown("##### 📜 Cumplimiento Regulatorio")
+    gc1, gc2, gc3 = st.columns(3)
+    gc1.markdown(f"**{_comp_summary['resumen']}**")
+    gc2.metric("Reglas Evaluadas", _comp_summary['total_reglas'])
+    gc3.metric("Overrides Activos", _comp_summary['overrides'])
+
     # 3. Stepper de Progreso (mejorado con tooltips)
     render_stepper(project['status'])
 

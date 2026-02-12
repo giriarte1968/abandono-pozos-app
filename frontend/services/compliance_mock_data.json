@@ -1,0 +1,268 @@
+{
+    "jurisdicciones": [
+        {
+            "jurisdiccion_id": 1,
+            "nombre": "Neuquén - Cuenca Neuquina",
+            "pais": "Argentina",
+            "provincia": "Neuquén",
+            "activo": "S",
+            "creado_por": "system"
+        },
+        {
+            "jurisdiccion_id": 2,
+            "nombre": "Texas - Permian Basin",
+            "pais": "USA",
+            "provincia": "Texas",
+            "activo": "S",
+            "creado_por": "system"
+        }
+    ],
+    "versiones_regulacion": [
+        {
+            "version_regulacion_id": 1,
+            "jurisdiccion_id": 1,
+            "nombre_version": "Res. SE 5/2024 - Abandono de Pozos (AR)",
+            "fecha_vigencia_desde": "2024-01-01",
+            "fecha_vigencia_hasta": null,
+            "estado": "VIGENTE",
+            "creado_por": "system"
+        },
+        {
+            "version_regulacion_id": 2,
+            "jurisdiccion_id": 2,
+            "nombre_version": "RRC Rule 14 - Well Plugging (TX)",
+            "fecha_vigencia_desde": "2023-06-01",
+            "fecha_vigencia_hasta": null,
+            "estado": "VIGENTE",
+            "creado_por": "system"
+        }
+    ],
+    "reglas_regulatorias": [
+        {
+            "regla_regulatoria_id": 1,
+            "version_regulacion_id": 1,
+            "codigo_regla": "AR-CEMENTO-MIN",
+            "descripcion": "Volumen mínimo de cemento clase G por tramo de aislación",
+            "tipo_regla": "VALOR_MINIMO",
+            "parametro": "volumen_cemento_m3",
+            "valor_minimo": 2.5,
+            "valor_maximo": null,
+            "unidad": "m³",
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 2,
+            "version_regulacion_id": 1,
+            "codigo_regla": "AR-PRESION-MAX",
+            "descripcion": "Presión máxima en boca de pozo durante taponamiento",
+            "tipo_regla": "VALOR_MAXIMO",
+            "parametro": "presion_boca_psi",
+            "valor_minimo": null,
+            "valor_maximo": 1500,
+            "unidad": "psi",
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 3,
+            "version_regulacion_id": 1,
+            "codigo_regla": "AR-TAG-RANGO",
+            "descripcion": "Profundidad del tapón de cemento debe estar en rango autorizado",
+            "tipo_regla": "RANGO",
+            "parametro": "profundidad_tapon_m",
+            "valor_minimo": 50,
+            "valor_maximo": 3000,
+            "unidad": "metros",
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 4,
+            "version_regulacion_id": 1,
+            "codigo_regla": "AR-EVIDENCIA-REQ",
+            "descripcion": "Evidencia fotográfica obligatoria antes de cierre de etapa",
+            "tipo_regla": "REQUERIDO",
+            "parametro": "evidencia_fotografica",
+            "valor_minimo": null,
+            "valor_maximo": null,
+            "unidad": null,
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 5,
+            "version_regulacion_id": 1,
+            "codigo_regla": "AR-HSE-CHECK",
+            "descripcion": "Check HSE diario completado antes de operar",
+            "tipo_regla": "BOOLEANO",
+            "parametro": "hse_check_completado",
+            "valor_minimo": null,
+            "valor_maximo": null,
+            "unidad": null,
+            "es_bloqueante": "N",
+            "severidad": "ADVERTENCIA",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 6,
+            "version_regulacion_id": 2,
+            "codigo_regla": "TX-CEMENT-MIN",
+            "descripcion": "Minimum cement volume per plug (API Class H)",
+            "tipo_regla": "VALOR_MINIMO",
+            "parametro": "volumen_cemento_m3",
+            "valor_minimo": 3.0,
+            "valor_maximo": null,
+            "unidad": "m³",
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 7,
+            "version_regulacion_id": 2,
+            "codigo_regla": "TX-PRESSURE-MAX",
+            "descripcion": "Maximum wellhead pressure during plugging operations",
+            "tipo_regla": "VALOR_MAXIMO",
+            "parametro": "presion_boca_psi",
+            "valor_minimo": null,
+            "valor_maximo": 2000,
+            "unidad": "psi",
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 8,
+            "version_regulacion_id": 2,
+            "codigo_regla": "TX-DEPTH-RANGE",
+            "descripcion": "Plug depth must be within permitted range per RRC Rule 14",
+            "tipo_regla": "RANGO",
+            "parametro": "profundidad_tapon_m",
+            "valor_minimo": 30,
+            "valor_maximo": 5000,
+            "unidad": "meters",
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 9,
+            "version_regulacion_id": 2,
+            "codigo_regla": "TX-FLUID-LEVEL",
+            "descripcion": "Fluid level must be verified before plugging",
+            "tipo_regla": "BOOLEANO",
+            "parametro": "nivel_fluido_verificado",
+            "valor_minimo": null,
+            "valor_maximo": null,
+            "unidad": null,
+            "es_bloqueante": "S",
+            "severidad": "ERROR",
+            "creado_por": "system"
+        },
+        {
+            "regla_regulatoria_id": 10,
+            "version_regulacion_id": 2,
+            "codigo_regla": "TX-WITNESS",
+            "descripcion": "RRC witness notification 48hrs in advance",
+            "tipo_regla": "BOOLEANO",
+            "parametro": "notificacion_testigo",
+            "valor_minimo": null,
+            "valor_maximo": null,
+            "unidad": null,
+            "es_bloqueante": "N",
+            "severidad": "ADVERTENCIA",
+            "creado_por": "system"
+        }
+    ],
+    "asignaciones": [
+        {
+            "asignacion_regulacion_pozo_id": 1,
+            "pozo_id": "X-123",
+            "version_regulacion_id": 1,
+            "asignado_por": "system"
+        },
+        {
+            "asignacion_regulacion_pozo_id": 2,
+            "pozo_id": "Z-789",
+            "version_regulacion_id": 1,
+            "asignado_por": "system"
+        },
+        {
+            "asignacion_regulacion_pozo_id": 3,
+            "pozo_id": "M-555",
+            "version_regulacion_id": 1,
+            "asignado_por": "system"
+        },
+        {
+            "asignacion_regulacion_pozo_id": 4,
+            "pozo_id": "K-001",
+            "version_regulacion_id": 2,
+            "asignado_por": "system"
+        }
+    ],
+    "resultados": [
+        {
+            "resultado_cumplimiento_id": 1,
+            "pozo_id": "X-123",
+            "regla_regulatoria_id": 1,
+            "etapa_evaluada": "EJECUCION_CAMPO",
+            "valor_evaluado": "3.2",
+            "valor_minimo_esperado": 2.5,
+            "valor_maximo_esperado": null,
+            "estado": "CUMPLE",
+            "override_aplicado": "N"
+        },
+        {
+            "resultado_cumplimiento_id": 2,
+            "pozo_id": "X-123",
+            "regla_regulatoria_id": 2,
+            "etapa_evaluada": "EJECUCION_CAMPO",
+            "valor_evaluado": "980",
+            "valor_minimo_esperado": null,
+            "valor_maximo_esperado": 1500,
+            "estado": "CUMPLE",
+            "override_aplicado": "N"
+        },
+        {
+            "resultado_cumplimiento_id": 3,
+            "pozo_id": "Z-789",
+            "regla_regulatoria_id": 1,
+            "etapa_evaluada": "EJECUCION_CAMPO",
+            "valor_evaluado": "1.8",
+            "valor_minimo_esperado": 2.5,
+            "valor_maximo_esperado": null,
+            "estado": "NO_CUMPLE",
+            "override_aplicado": "N"
+        },
+        {
+            "resultado_cumplimiento_id": 4,
+            "pozo_id": "Z-789",
+            "regla_regulatoria_id": 2,
+            "etapa_evaluada": "EJECUCION_CAMPO",
+            "valor_evaluado": "1620",
+            "valor_minimo_esperado": null,
+            "valor_maximo_esperado": 1500,
+            "estado": "NO_CUMPLE",
+            "override_aplicado": "S",
+            "motivo_override": "Presión controlada descendente, lectura pico durante purga autorizada por Ing. Campo",
+            "usuario_override": "r.supervisor",
+            "vencimiento_override": "2025-04-01"
+        },
+        {
+            "resultado_cumplimiento_id": 5,
+            "pozo_id": "M-555",
+            "regla_regulatoria_id": 5,
+            "etapa_evaluada": "CIERRE_Y_AUDITORIA",
+            "valor_evaluado": "false",
+            "valor_minimo_esperado": null,
+            "valor_maximo_esperado": null,
+            "estado": "ADVERTENCIA",
+            "override_aplicado": "N"
+        }
+    ]
+}
