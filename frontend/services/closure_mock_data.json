@@ -1,0 +1,174 @@
+{
+    "documentos_evidencia": [
+        {
+            "documento_evidencia_id": 1,
+            "id_pozo": "X-123",
+            "tipo_documento": "CURVA_PRESION",
+            "nombre_archivo": "X-123_curva_presion.csv",
+            "url_archivo": "storage/curvas/X-123_curva_presion.csv",
+            "hash_sha256": "a3f2c8d1e4b5a6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1",
+            "tamano_bytes": 245000,
+            "mime_type": "text/csv",
+            "etapa_workflow": "EJECUCION_CAMPO",
+            "estado": "ACTIVO",
+            "cargado_por": "op.campo_01",
+            "cargado_en": "2025-12-10T16:00:00"
+        },
+        {
+            "documento_evidencia_id": 2,
+            "id_pozo": "X-123",
+            "tipo_documento": "REPORTE_CEMENTACION",
+            "nombre_archivo": "X-123_reporte_halliburton.pdf",
+            "url_archivo": "storage/reportes/X-123_reporte_halliburton.pdf",
+            "hash_sha256": "b4d3f9e2a5c6b7d8e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3",
+            "tamano_bytes": 1520000,
+            "mime_type": "application/pdf",
+            "etapa_workflow": "EJECUCION_CAMPO",
+            "estado": "ACTIVO",
+            "cargado_por": "op.campo_01",
+            "cargado_en": "2025-12-10T17:00:00"
+        },
+        {
+            "documento_evidencia_id": 3,
+            "id_pozo": "X-123",
+            "tipo_documento": "FOTO_EVIDENCIA",
+            "nombre_archivo": "X-123_pre_work_site.jpg",
+            "url_archivo": "storage/evidence/X-123_pre_work_site.jpg",
+            "hash_sha256": "c5e4a0f3b6d7c8e9f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4",
+            "tamano_bytes": 340000,
+            "mime_type": "image/jpeg",
+            "etapa_workflow": "EJECUCION_CAMPO",
+            "estado": "ACTIVO",
+            "cargado_por": "op.campo_01",
+            "cargado_en": "2025-11-20T08:30:00"
+        },
+        {
+            "documento_evidencia_id": 4,
+            "id_pozo": "X-123",
+            "tipo_documento": "CERTIFICADO_HSE",
+            "nombre_archivo": "X-123_cert_hse.pdf",
+            "url_archivo": "storage/certs/X-123_cert_hse.pdf",
+            "hash_sha256": "d6f5b1a4c7e8d9f0a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5",
+            "tamano_bytes": 890000,
+            "mime_type": "application/pdf",
+            "etapa_workflow": "CIERRE_Y_AUDITORIA",
+            "estado": "ACTIVO",
+            "cargado_por": "j.martinez",
+            "cargado_en": "2026-01-15T10:00:00"
+        },
+        {
+            "documento_evidencia_id": 5,
+            "id_pozo": "Z-789",
+            "tipo_documento": "CURVA_PRESION",
+            "nombre_archivo": "Z-789_curva_presion.csv",
+            "url_archivo": "storage/curvas/Z-789_curva_presion.csv",
+            "hash_sha256": "e7a6c2b5d8f9e0a1b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6",
+            "tamano_bytes": 310000,
+            "mime_type": "text/csv",
+            "etapa_workflow": "EJECUCION_CAMPO",
+            "estado": "ACTIVO",
+            "cargado_por": "op.campo_02",
+            "cargado_en": "2026-01-05T14:00:00"
+        }
+    ],
+    "certificaciones": [
+        {
+            "certificacion_digital_id": 1,
+            "documento_evidencia_id": 1,
+            "hash_certificacion": "cert_a3f2c8d1e4b5_20251210",
+            "sello_tiempo_utc": "2025-12-10T19:00:00Z",
+            "firmado_por": "PNA_SYSTEM",
+            "sistema_origen": "PNA_SYSTEM",
+            "estado": "VIGENTE"
+        },
+        {
+            "certificacion_digital_id": 2,
+            "documento_evidencia_id": 2,
+            "hash_certificacion": "cert_b4d3f9e2a5c6_20251210",
+            "sello_tiempo_utc": "2025-12-10T20:00:00Z",
+            "firmado_por": "PNA_SYSTEM",
+            "sistema_origen": "PNA_SYSTEM",
+            "estado": "VIGENTE"
+        },
+        {
+            "certificacion_digital_id": 3,
+            "documento_evidencia_id": 3,
+            "hash_certificacion": "cert_c5e4a0f3b6d7_20251120",
+            "sello_tiempo_utc": "2025-11-20T11:30:00Z",
+            "firmado_por": "PNA_SYSTEM",
+            "sistema_origen": "PNA_SYSTEM",
+            "estado": "VIGENTE"
+        },
+        {
+            "certificacion_digital_id": 4,
+            "documento_evidencia_id": 4,
+            "hash_certificacion": "cert_d6f5b1a4c7e8_20260115",
+            "sello_tiempo_utc": "2026-01-15T13:00:00Z",
+            "firmado_por": "PNA_SYSTEM",
+            "sistema_origen": "PNA_SYSTEM",
+            "estado": "VIGENTE"
+        }
+    ],
+    "cierres": [
+        {
+            "cierre_tecnico_pozo_id": 1,
+            "id_pozo": "X-123",
+            "fecha_inicio_cierre": "2026-01-20",
+            "fecha_fin_cierre": null,
+            "estado_cierre": "EN_PROCESO",
+            "aprobado_por": null,
+            "fecha_aprobacion": null,
+            "dictamen_final": null,
+            "hash_consolidado": null,
+            "creado_por": "j.martinez"
+        }
+    ],
+    "checklists": [
+        {
+            "checklist_cierre_id": 1,
+            "cierre_tecnico_pozo_id": 1,
+            "item_control": "Cementación validada",
+            "estado_item": "OK",
+            "observacion": "Validación automática OK. Desvíos dentro de tolerancia.",
+            "validado_por": "MOTOR_CEMENTACION",
+            "fecha_validacion": "2026-01-20T10:00:00"
+        },
+        {
+            "checklist_cierre_id": 2,
+            "cierre_tecnico_pozo_id": 1,
+            "item_control": "Evidencia certificada",
+            "estado_item": "OK",
+            "observacion": "4 documentos con certificación digital vigente.",
+            "validado_por": "PNA_SYSTEM",
+            "fecha_validacion": "2026-01-20T10:00:05"
+        },
+        {
+            "checklist_cierre_id": 3,
+            "cierre_tecnico_pozo_id": 1,
+            "item_control": "Integridad verificada",
+            "estado_item": "OK",
+            "observacion": "Cadena de auditoría íntegra (0 errores).",
+            "validado_por": "PNA_SYSTEM",
+            "fecha_validacion": "2026-01-20T10:00:10"
+        },
+        {
+            "checklist_cierre_id": 4,
+            "cierre_tecnico_pozo_id": 1,
+            "item_control": "Acta firmada digitalmente",
+            "estado_item": "PENDIENTE",
+            "observacion": null,
+            "validado_por": null,
+            "fecha_validacion": null
+        },
+        {
+            "checklist_cierre_id": 5,
+            "cierre_tecnico_pozo_id": 1,
+            "item_control": "Control calidad OK",
+            "estado_item": "OK",
+            "observacion": "Sin validaciones CRITICO pendientes.",
+            "validado_por": "PNA_SYSTEM",
+            "fecha_validacion": "2026-01-20T10:00:15"
+        }
+    ],
+    "exportaciones": []
+}

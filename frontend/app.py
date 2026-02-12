@@ -79,6 +79,10 @@ def main_router():
     elif page == 'Cementación':
         from views import cementation_view
         cementation_view.render_view()
+
+    elif page == 'Cierre Técnico':
+        from views import closure_view
+        closure_view.render_view()
         
     else:
         st.warning(f"Página no encontrada: {page}")

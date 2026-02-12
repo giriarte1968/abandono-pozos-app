@@ -106,6 +106,16 @@ def render_view(project_id):
     cc1.markdown(f"**{_cem_estado['resumen']}**")
     cc2.markdown(f"**Avance:** {'✅ Habilitado' if _cem_estado['puede_avanzar'] else '🚫 Bloqueado'}")
 
+    # Gate 6: Cierre Técnico
+    from services.closure_service import ClosureService
+    _closure = ClosureService(audit_service=api.audit, cementation_service=_cementation)
+    _cierre_estado = _closure.get_estado_cierre_pozo(project_id)
+
+    st.markdown("##### 🏁 Cierre Técnico")
+    ct1, ct2 = st.columns([3, 1])
+    ct1.markdown(f"**{_cierre_estado['resumen']}**")
+    ct2.markdown(f"**Regulador:** {'✅ Listo' if _cierre_estado['estado'] == 'CERRADO_DEFENDIBLE' else '🔄 Pendiente'}")
+
     # 3. Stepper de Progreso (mejorado con tooltips)
     render_stepper(project['status'])
 
