@@ -1,0 +1,144 @@
+{
+    "disenos": [
+        {
+            "diseno_cementacion_id": 1,
+            "id_pozo": "X-123",
+            "volumen_teorico_m3": 8.50,
+            "densidad_objetivo_ppg": 15.80,
+            "presion_maxima_permitida_psi": 3500.00,
+            "intervalo_desde_m": 800.00,
+            "intervalo_hasta_m": 1200.00,
+            "tipo_lechada": "Clase G + Microesfera",
+            "fecha_aprobacion": "2025-11-15",
+            "aprobado_por": "Ing. Martínez",
+            "estado_diseno": "APROBADO",
+            "creado_por": "j.martinez"
+        },
+        {
+            "diseno_cementacion_id": 2,
+            "id_pozo": "Z-789",
+            "volumen_teorico_m3": 12.00,
+            "densidad_objetivo_ppg": 16.20,
+            "presion_maxima_permitida_psi": 4000.00,
+            "intervalo_desde_m": 500.00,
+            "intervalo_hasta_m": 1800.00,
+            "tipo_lechada": "Clase H Premium",
+            "fecha_aprobacion": "2025-12-01",
+            "aprobado_por": "Ing. López",
+            "estado_diseno": "APROBADO",
+            "creado_por": "a.lopez"
+        },
+        {
+            "diseno_cementacion_id": 3,
+            "id_pozo": "M-555",
+            "volumen_teorico_m3": 6.00,
+            "densidad_objetivo_ppg": 15.50,
+            "presion_maxima_permitida_psi": 3000.00,
+            "intervalo_desde_m": 200.00,
+            "intervalo_hasta_m": 600.00,
+            "tipo_lechada": "Clase G Estándar",
+            "fecha_aprobacion": null,
+            "aprobado_por": null,
+            "estado_diseno": "BORRADOR",
+            "creado_por": "r.garcia"
+        }
+    ],
+    "datos_reales": [
+        {
+            "dato_real_cementacion_id": 1,
+            "diseno_cementacion_id": 1,
+            "volumen_real_m3": 9.10,
+            "densidad_real_ppg": 15.60,
+            "presion_maxima_registrada_psi": 3200.00,
+            "tiempo_bombeo_min": 145.00,
+            "archivo_curva_url": "storage/curvas/X-123_curva_presion.csv",
+            "proveedor_servicio": "Halliburton Argentina S.A.",
+            "fecha_ejecucion": "2025-12-10",
+            "cargado_por": "op.campo_01"
+        },
+        {
+            "dato_real_cementacion_id": 2,
+            "diseno_cementacion_id": 2,
+            "volumen_real_m3": 8.60,
+            "densidad_real_ppg": 17.80,
+            "presion_maxima_registrada_psi": 4350.00,
+            "tiempo_bombeo_min": 210.00,
+            "archivo_curva_url": "storage/curvas/Z-789_curva_presion.csv",
+            "proveedor_servicio": "Schlumberger Neuquén",
+            "fecha_ejecucion": "2026-01-05",
+            "cargado_por": "op.campo_02"
+        }
+    ],
+    "validaciones": [
+        {
+            "validacion_cementacion_id": 1,
+            "dato_real_cementacion_id": 1,
+            "desvio_volumen_pct": 7.06,
+            "desvio_densidad_pct": 1.27,
+            "exceso_presion": "NO",
+            "resultado_validacion": "OK",
+            "validado_por_sistema": "MOTOR_CEMENTACION",
+            "override_aplicado": "N"
+        },
+        {
+            "validacion_cementacion_id": 2,
+            "dato_real_cementacion_id": 2,
+            "desvio_volumen_pct": 28.33,
+            "desvio_densidad_pct": 9.88,
+            "exceso_presion": "SI",
+            "resultado_validacion": "CRITICO",
+            "validado_por_sistema": "MOTOR_CEMENTACION",
+            "override_aplicado": "N"
+        }
+    ],
+    "eventos": [
+        {
+            "evento_cementacion_id": 1,
+            "id_pozo": "X-123",
+            "tipo_evento": "DISENO_APROBADO",
+            "detalle_evento": "Diseño de cementación aprobado por Ing. Martínez. Lechada Clase G + Microesfera. Volumen teórico: 8.50 m³.",
+            "fecha_evento": "2025-11-15T10:30:00",
+            "usuario_evento": "j.martinez"
+        },
+        {
+            "evento_cementacion_id": 2,
+            "id_pozo": "X-123",
+            "tipo_evento": "DATOS_CARGADOS",
+            "detalle_evento": "Datos reales cargados por operador. Proveedor: Halliburton. Volumen real: 9.10 m³, Densidad: 15.60 ppg.",
+            "fecha_evento": "2025-12-10T16:45:00",
+            "usuario_evento": "op.campo_01"
+        },
+        {
+            "evento_cementacion_id": 3,
+            "id_pozo": "X-123",
+            "tipo_evento": "VALIDACION_OK",
+            "detalle_evento": "Validación automática OK. Desvío volumen: 7.06%, Desvío densidad: 1.27%, Presión: dentro de límites.",
+            "fecha_evento": "2025-12-10T16:45:05",
+            "usuario_evento": "MOTOR_CEMENTACION"
+        },
+        {
+            "evento_cementacion_id": 4,
+            "id_pozo": "Z-789",
+            "tipo_evento": "DISENO_APROBADO",
+            "detalle_evento": "Diseño de cementación aprobado por Ing. López. Lechada Clase H Premium. Volumen teórico: 12.00 m³.",
+            "fecha_evento": "2025-12-01T09:00:00",
+            "usuario_evento": "a.lopez"
+        },
+        {
+            "evento_cementacion_id": 5,
+            "id_pozo": "Z-789",
+            "tipo_evento": "DATOS_CARGADOS",
+            "detalle_evento": "Datos reales cargados por operador. Proveedor: Schlumberger. Volumen real: 8.60 m³, Densidad: 17.80 ppg.",
+            "fecha_evento": "2026-01-05T14:20:00",
+            "usuario_evento": "op.campo_02"
+        },
+        {
+            "evento_cementacion_id": 6,
+            "id_pozo": "Z-789",
+            "tipo_evento": "VALIDACION_CRITICA",
+            "detalle_evento": "CRITICO: Desvío volumen -28.33% (>20%), Desvío densidad +9.88% (>8%), Presión 4350 psi > máx 4000 psi.",
+            "fecha_evento": "2026-01-05T14:20:08",
+            "usuario_evento": "MOTOR_CEMENTACION"
+        }
+    ]
+}

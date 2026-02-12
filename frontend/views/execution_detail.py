@@ -96,6 +96,16 @@ def render_view(project_id):
     gc2.metric("Reglas Evaluadas", _comp_summary['total_reglas'])
     gc3.metric("Overrides Activos", _comp_summary['overrides'])
 
+    # Gate 5: Control de Cementación
+    from services.cementation_service import CementationService
+    _cementation = CementationService(audit_service=api.audit)
+    _cem_estado = _cementation.get_estado_cementacion_pozo(project_id)
+
+    st.markdown("##### 🧪 Control de Cementación")
+    cc1, cc2 = st.columns([3, 1])
+    cc1.markdown(f"**{_cem_estado['resumen']}**")
+    cc2.markdown(f"**Avance:** {'✅ Habilitado' if _cem_estado['puede_avanzar'] else '🚫 Bloqueado'}")
+
     # 3. Stepper de Progreso (mejorado con tooltips)
     render_stepper(project['status'])
 
