@@ -1,16 +1,22 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 from services.mock_api_client import MockApiClient
+from services.compliance_service import ComplianceService
 
 def render_view():
     st.title("⚙️ Administración de Datos Maestros")
-    st.caption("Gestión centralizada de Pozos, Personal, Equipos e Insumos. (Solo Administradores)")
+    st.caption("Gestión centralizada de Datos Maestros y Configuración Regulatoria. (Solo Administradores)")
 
     api = st.session_state.get('api_client', MockApiClient())
+    
+    # Instanciar servicio de cumplimiento con auditoría (usando audit del api si existe)
+    audit_svc = getattr(api, 'audit', None)
+    comp_svc = ComplianceService(audit_service=audit_svc)
 
     # --- TABS DE GESTIÓN ---
-    tab_pozos, tab_personal, tab_equipos, tab_insumos, tab_campanas = st.tabs([
-        "📍 Pozos", "👷 Personal", "🚜 Equipos", "📦 Insumos", "📅 Campañas"
+    tab_pozos, tab_personal, tab_equipos, tab_insumos, tab_campanas, tab_normativa = st.tabs([
+        "📍 Pozos", "👷 Personal", "🚜 Equipos", "📦 Insumos", "📅 Campañas", "⚖️ Normativa"
     ])
 
     def ensure_df_columns(df, expected_cols):
@@ -154,6 +160,133 @@ def render_view():
                     "dates": c_range, "pozos": c_pozos
                 })
                 st.success(f"Campaña '{c_name}' creada con {len(c_pozos)} pozos.")
+
+    # --- 6. NORMATIVA (NUEVO) ---
+    with tab_normativa:
+        st.subheader("Configuración de Cumplimiento Regulatorio")
+        
+        nt1, nt2, nt3 = st.tabs(["🏛️ Jurisdicciones", "📜 Versiones de Regulación", "📏 Reglas Específicas"])
+        
+        # --- JURISDICCIONES ---
+        with nt1:
+            juris = comp_svc.get_jurisdicciones()
+            df_juris = pd.DataFrame(juris)
+            
+            with st.expander("➕ Nueva Jurisdicción"):
+                with st.form("form_juris"):
+                    j_nombre = st.text_input("Nombre Jurisdicción", placeholder="Ej: Neuquén - Cuenca Neuquina")
+                    j_pais = st.text_input("País", value="Argentina")
+                    j_prov = st.text_input("Provincia / Estado", value="Neuquén")
+                    
+                    if st.form_submit_button("Guardar Jurisdicción"):
+                        if j_nombre:
+                            comp_svc.upsert_jurisdiccion({
+                                "nombre": j_nombre, "pais": j_pais, "provincia": j_prov, "activo": "S"
+                            })
+                            st.success(f"Jurisdicción {j_nombre} guardada")
+                            st.rerun()
+                        else:
+                            st.error("El nombre es obligatorio")
+            
+            if not df_juris.empty:
+                st.dataframe(df_juris[['jurisdiccion_id', 'nombre', 'pais', 'provincia']], use_container_width=True, hide_index=True)
+            else:
+                st.info("No hay jurisdicciones cargadas.")
+
+        # --- VERSIONES ---
+        with nt2:
+            if not juris:
+                st.warning("Cargue jurisdicciones primero.")
+            else:
+                juris_opts = {j['jurisdiccion_id']: j['nombre'] for j in juris}
+                sel_juris_v = st.selectbox("Filtrar por Jurisdicción", list(juris_opts.keys()), format_func=lambda x: juris_opts[x], key="sel_jur_ver")
+                
+                versiones = comp_svc.get_versiones_por_jurisdiccion(sel_juris_v)
+                
+                with st.expander("➕ Nueva Versión Regulatoria"):
+                    with st.form("form_version"):
+                        v_nombre = st.text_input("Nombre Versión", placeholder="Ej: Res. 34/2025")
+                        v_desc = st.text_area("Descripción/Alcance")
+                        v_estado = st.selectbox("Estado Inicial", ["BORRADOR", "VIGENTE"])
+                        
+                        if st.form_submit_button("Crear Versión"):
+                            if v_nombre:
+                                comp_svc.upsert_version_regulacion({
+                                    "jurisdiccion_id": sel_juris_v,
+                                    "version_nombre": v_nombre,
+                                    "fecha_vigencia": datetime.now().strftime("%Y-%m-%d"),
+                                    "estado": v_estado,
+                                    "descripcion": v_desc
+                                })
+                                st.success(f"Versión {v_nombre} creada")
+                                st.rerun()
+                            else:
+                                st.error("Nombre requerido")
+
+                if versiones:
+                    df_ver = pd.DataFrame(versiones)
+                    st.dataframe(df_ver[['version_regulacion_id', 'version_nombre', 'estado', 'fecha_vigencia']], use_container_width=True, hide_index=True)
+                else:
+                    st.info("No hay versiones para esta jurisdicción.")
+
+        # --- REGLAS ---
+        with nt3:
+            if not juris:
+                st.warning("Configure Jurisdicciones y Versiones primero.")
+            else:
+                # Selector en cascada
+                c1, c2 = st.columns(2)
+                sel_jur_r = c1.selectbox("Jurisdicción", list(juris_opts.keys()), format_func=lambda x: juris_opts[x], key="sel_jur_reg")
+                versiones_r = comp_svc.get_versiones_por_jurisdiccion(sel_jur_r)
+                
+                if not versiones_r:
+                    st.warning("Esta jurisdicción no tiene versiones definidas.")
+                else:
+                    ver_opts = {v['version_regulacion_id']: v['version_nombre'] for v in versiones_r}
+                    sel_ver_r = c2.selectbox("Versión Regulatoria", list(ver_opts.keys()), format_func=lambda x: ver_opts[x], key="sel_ver_reg")
+                    
+                    reglas = comp_svc.get_reglas_por_version(sel_ver_r)
+                    
+                    with st.expander("➕ Nueva Regla Regulatoria"):
+                        with st.form("form_regla"):
+                            r_cod = st.text_input("Código Regla", placeholder="Ej: REG-001")
+                            r_desc = st.text_area("Descripción de la Regla")
+                            r_param = st.text_input("Parámetro Técnico (Key)", placeholder="Ej: volumen_cemento_m3")
+                            
+                            c1, c2 = st.columns(2)
+                            r_tipo = c1.selectbox("Tipo de Regla", ["VALOR_MINIMO", "VALOR_MAXIMO", "RANGO", "BOOLEANO", "REQUERIDO"])
+                            r_sev = c2.selectbox("Severidad", ["ERROR", "ADVERTENCIA"])
+                            
+                            c3, c4 = st.columns(2)
+                            r_min = c3.number_input("Valor Mínimo (si aplica)", value=0.0)
+                            r_max = c4.number_input("Valor Máximo (si aplica)", value=0.0)
+                            
+                            r_bloq = st.checkbox("¿Es Bloqueante del Workflow?", value=(r_sev == "ERROR"))
+                            
+                            if st.form_submit_button("Guardar Regla"):
+                                if r_cod and r_param:
+                                    comp_svc.upsert_regla({
+                                        "version_regulacion_id": sel_ver_r,
+                                        "codigo_regla": r_cod,
+                                        "descripcion": r_desc,
+                                        "tipo_regla": r_tipo,
+                                        "parametro": r_param,
+                                        "valor_minimo": r_min if r_tipo in ["VALOR_MINIMO", "RANGO"] else None,
+                                        "valor_maximo": r_max if r_tipo in ["VALOR_MAXIMO", "RANGO"] else None,
+                                        "unidad": "unidad", # Simplificado
+                                        "severidad": r_sev,
+                                        "es_bloqueante": "S" if r_bloq else "N"
+                                    })
+                                    st.success(f"Regla {r_cod} guardada")
+                                    st.rerun()
+                                else:
+                                    st.error("Código y Parámetro son obligatorios")
+                    
+                    if reglas:
+                        df_rules = pd.DataFrame(reglas)
+                        st.dataframe(df_rules[['codigo_regla', 'descripcion', 'tipo_regla', 'parametro', 'severidad']], use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No hay reglas cargadas en esta versión.")
 
     # --- IMPORTACIÓN CSV ---
     st.divider()

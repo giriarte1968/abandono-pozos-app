@@ -46,7 +46,29 @@ class ComplianceService:
         data = self._load_mock_data()
         return [j for j in data["jurisdicciones"] if j.get("activo", "S") == "S"]
 
-    # ─── Reglas ────────────────────────────────────────────────
+    def upsert_jurisdiccion(self, juris_data):
+        data = self._load_mock_data()
+        if "jurisdiccion_id" in juris_data and juris_data["jurisdiccion_id"]:
+            # Update
+            for i, j in enumerate(data["jurisdicciones"]):
+                if j["jurisdiccion_id"] == juris_data["jurisdiccion_id"]:
+                    data["jurisdicciones"][i] = {**j, **juris_data}
+                    self._save_mock_data()
+                    return data["jurisdicciones"][i]
+        else:
+            # Create
+            new_id = max((j["jurisdiccion_id"] for j in data["jurisdicciones"]), default=0) + 1
+            juris_data["jurisdiccion_id"] = new_id
+            juris_data["activo"] = "S"
+            data["jurisdicciones"].append(juris_data)
+            self._save_mock_data()
+            return juris_data
+
+    # ─── Versiones de Regulación ───────────────────────────────
+
+    def get_versiones_por_jurisdiccion(self, jurisdiccion_id):
+        data = self._load_mock_data()
+        return [v for v in data["versiones_regulacion"] if v["jurisdiccion_id"] == jurisdiccion_id]
 
     def get_version_vigente(self, jurisdiccion_id):
         """Retorna la versión regulatoria vigente para una jurisdicción."""
@@ -56,6 +78,26 @@ class ComplianceService:
                 return v
         return None
 
+    def upsert_version_regulacion(self, version_data):
+        data = self._load_mock_data()
+        if "version_regulacion_id" in version_data and version_data["version_regulacion_id"]:
+            # Update
+            for i, v in enumerate(data["versiones_regulacion"]):
+                if v["version_regulacion_id"] == version_data["version_regulacion_id"]:
+                    data["versiones_regulacion"][i] = {**v, **version_data}
+                    self._save_mock_data()
+                    return data["versiones_regulacion"][i]
+        else:
+            # Create
+            new_id = max((v["version_regulacion_id"] for v in data["versiones_regulacion"]), default=0) + 1
+            version_data["version_regulacion_id"] = new_id
+            version_data["creado_en"] = datetime.now().isoformat()
+            data["versiones_regulacion"].append(version_data)
+            self._save_mock_data()
+            return version_data
+
+    # ─── Reglas ────────────────────────────────────────────────
+
     def get_reglas_por_version(self, version_regulacion_id):
         """Retorna todas las reglas de una versión regulatoria."""
         data = self._load_mock_data()
@@ -64,6 +106,23 @@ class ComplianceService:
             for r in data["reglas_regulatorias"]
             if r["version_regulacion_id"] == version_regulacion_id
         ]
+
+    def upsert_regla(self, regla_data):
+        data = self._load_mock_data()
+        if "regla_regulatoria_id" in regla_data and regla_data["regla_regulatoria_id"]:
+            # Update
+            for i, r in enumerate(data["reglas_regulatorias"]):
+                if r["regla_regulatoria_id"] == regla_data["regla_regulatoria_id"]:
+                    data["reglas_regulatorias"][i] = {**r, **regla_data}
+                    self._save_mock_data()
+                    return data["reglas_regulatorias"][i]
+        else:
+            # Create
+            new_id = max((r["regla_regulatoria_id"] for r in data["reglas_regulatorias"]), default=0) + 1
+            regla_data["regla_regulatoria_id"] = new_id
+            data["reglas_regulatorias"].append(regla_data)
+            self._save_mock_data()
+            return regla_data
 
     def get_version_asignada_pozo(self, pozo_id):
         """Retorna la versión regulatoria asignada a un pozo."""

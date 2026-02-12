@@ -2,6 +2,7 @@ import streamlit as st
 from components.sidebar import render_sidebar
 from views import login, dashboard, project_list, execution_detail
 from services.mock_api_client import MockApiClient
+from styles.custom_css import load_custom_css
 
 # Configuración de página - Debe ser lo primero
 st.set_page_config(
@@ -35,6 +36,9 @@ def main_router():
     if not role:
         login.render_view()
         return
+
+    # Inyectar CSS global
+    load_custom_css()
 
     # 2. Renderizar Sidebar Común (Navegación)
     render_sidebar()

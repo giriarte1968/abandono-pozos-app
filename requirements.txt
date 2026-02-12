@@ -6,3 +6,5 @@ aiomysql>=0.2.0
 mysqlclient>=2.2.0
 python-dotenv>=1.0.0
 pydantic>=2.0.0
+streamlit-antd-components>=0.3.0
+streamlit-extras>=0.3.0
