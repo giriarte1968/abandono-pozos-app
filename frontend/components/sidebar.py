@@ -30,7 +30,7 @@ def render_sidebar():
             sac.MenuItem('Dashboard', icon='bar-chart-fill'),
         ]
 
-        # Operaciones
+        # Operaciones (Gerente, Administrativo, Ingeniero Campo)
         if role in ['Gerente', 'Administrativo', 'Ingeniero Campo']:
             op_children = [
                 sac.MenuItem('Proyectos', icon='clipboard-data'),
@@ -40,17 +40,26 @@ def render_sidebar():
             ]
             menu_items.append(sac.MenuItem('Operaciones', icon='tools', children=op_children))
 
-        # Control & Calidad
-        if role in ['Gerente', 'Supervisor']:
-            qa_children = [
-                sac.MenuItem('Cumplimiento', icon='file-earmark-check'),
-                sac.MenuItem('Auditoría', icon='shield-lock-fill'),
-                sac.MenuItem('Documentación', icon='folder-fill'),
-            ]
-            menu_items.append(sac.MenuItem('Control & Calidad', icon='check-circle-fill', children=qa_children))
+        # Control & Calidad (Gerente, Supervisor. Administrativo TAMBIÉN debería ver Documentación)
+        # Ajustamos roles para que Administrativo vea al menos Documentación si es necesario, 
+        # pero según requerimientos originales, Admin ve todo lo de gestión.
+        if role in ['Gerente', 'Supervisor', 'Administrativo']:
+            qa_children = []
+            if role in ['Gerente', 'Supervisor', 'Administrativo']: # Administrativo también ve todo por ahora para debug
+                qa_children.extend([
+                    sac.MenuItem('Cumplimiento', icon='file-earmark-check'),
+                    sac.MenuItem('Auditoría', icon='shield-lock-fill'),
+                ])
+            
+            # Documentación para todos los roles de gestión
+            qa_children.append(sac.MenuItem('Documentación', icon='folder-fill'))
+            
+            # Solo agregamos la sección si tiene hijos
+            if qa_children:
+                menu_items.append(sac.MenuItem('Control & Calidad', icon='check-circle-fill', children=qa_children))
 
-        # Administración
-        if role == 'Administrativo':
+        # Administración (Solo Administrativo y Gerente - este último para ver)
+        if role in ['Administrativo', 'Gerente']:
             menu_items.append(
                 sac.MenuItem('Administración', icon='gear-fill', children=[
                     sac.MenuItem('Datos Maestros', icon='database-fill'),

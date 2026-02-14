@@ -1,85 +1,192 @@
-# P&A System - Podman Infrastructure
+# AbandonPro - Sistema de Gestión de Abandono de Pozos (P&A)
 
-## 🚀 Quick Start
+Sistema integral para la gestión de operaciones de Plug & Abandonment (P&A) en la industria petrolera, con módulos operativos, financieros y de control contractual.
 
-### Install Podman (Windows)
+## 🚀 Quick Start - Desarrollo Local
+
+### Ejecutar Frontend (Streamlit)
+
+```bash
+cd C:\Users\Gustavo\.gemini\antigravity\scratch
+streamlit run frontend/app.py
+```
+
+La aplicación estará disponible en: http://localhost:8501
+
+### Módulos Disponibles
+
+- **Operaciones**: Proyectos, Logística, Cementación, Cierre Técnico
+- **Finanzas**: Dashboard Financiero, Contratos, Certificaciones
+- **Control & Calidad**: Cumplimiento, Auditoría, Documentación
+- **Administración**: Datos Maestros (Operativos + Financieros)
+
+## 💰 Módulo Financiero & Control Contractual
+
+### Características Principales
+
+#### 📊 Dashboard Financiero
+- **KPIs en tiempo real**: Backlog, avance físico/financiero, saldo de caja, días de cobertura
+- **Proyección de flujo de fondos**: 12 meses con gráficos interactivos
+- **Alertas automáticas**: Cobertura < 45 días, backlog bajo
+
+#### 📋 Gestión de Contratos
+- Creación y administración de contratos con clientes (SureOil, YPF, Petrobras)
+- Cálculo automático de montos y backlog
+- Asignación de pozos a contratos
+- Validación de reglas de negocio (no edición con certificaciones)
+
+#### ✅ Certificaciones de Obra
+- **Integración con operaciones**: Solo pozos COMPLETADOS pueden certificarse
+- **Generación automática de facturas**: Con plazos de pago configurables
+- **Cálculo de rentabilidad**: Ingresos vs costos operativos
+- **Sincronización bidireccional**: Estado de pozos entre operaciones y finanzas
+
+#### 💡 Chat AI con Recomendaciones
+El asistente virtual ofrece:
+- **Análisis de situación dual**: Operativo + Financiero
+- **Recomendaciones inteligentes**: Basadas en datos reales
+- **Alertas proactivas**: Facturas vencidas, márgenes bajos, backlog crítico
+- **Modo offline**: Funciona sin API de Gemini usando motor de reglas
+
+### Datos de Ejemplo (Mock)
+
+El sistema incluye datos de prueba realistas:
+
+**Contratos:**
+- SureOil - Lote Norte: $740,000 (4 pozos)
+- YPF - Abandono Integral: $585,000 (3 pozos)
+- Petrobras - Mantenimiento: $525,000 (3 pozos)
+
+**Pozos integrados (10):**
+- X-123, A-321, Z-789, M-555 (SureOil)
+- P-001, P-002, H-101 (YPF)
+- H-102, T-201, C-301 (Petrobras)
+
+**Estado financiero inicial:**
+- Backlog total: $1,470,000
+- Avance: 30.5%
+- Caja: $140,000
+- Cobertura: 42 días (⚠️ alerta)
+
+## 🏗️ Arquitectura de Integración
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    FRONTEND (Streamlit)                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
+│  │Dashboard │ │Contratos │ │Certificac│ │Datos     │   │
+│  │Financiero│ │          │ │  iones   │ │Maestros  │   │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
+└─────────────────────────────────────────────────────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        ▼                  ▼                  ▼
+┌──────────────┐  ┌────────────────┐  ┌─────────────────┐
+│   MockApi    │  │  Financial     │  │   AI Service    │
+│   Client     │  │  Service Mock  │  │   (Gemini)      │
+│(Operaciones) │  │   (Finanzas)   │  │   + Reglas      │
+└──────────────┘  └────────────────┘  └─────────────────┘
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │ persistence │
+                    │  _db.json   │
+                    └─────────────┘
+```
+
+### Flujo de Integración Operaciones ↔ Finanzas
+
+1. **Pozo completado** en operaciones → Disponible para certificación en finanzas
+2. **Certificación** en finanzas → Actualiza backlog y genera factura
+3. **Costos operativos** → Integrados en análisis de rentabilidad
+4. **Estado financiero** → Disponible en chat y dashboards
+
+## 🧪 Testing
+
+```bash
+# Ejecutar validación del módulo financiero
+python test_financial_mock_validation.py
+
+# Probar chat en modo offline
+python test_chat_offline.py
+```
+
+## 🗄️ Estructura de Base de Datos
+
+### Módulo Financiero (SQL)
+
+Ver `db/migrations/007_financial_module.sql`:
+
+- **CONTRATOS**: Información contractual y montos
+- **CERTIFICACIONES**: Obras certificadas y avances
+- **FACTURAS**: Documentos de cobro generados
+- **COBRANZAS**: Pagos recibidos
+- **COSTOS_REALES**: Gastos operativos integrados
+- **FLUJO_FONDOS**: Proyecciones financieras
+- **PARAMETROS_MACRO**: Variables económicas
+
+## 🔧 Configuración
+
+### Variables de Entorno
+
+Crear archivo `.env`:
+
+```
+GEMINI_API_KEY=tu_api_key_aqui
+```
+
+> **Nota**: Si no se configura API Key, el sistema funciona en modo offline con motor de reglas.
+
+### Roles de Usuario
+
+- **Gerente**: Acceso total operativo y financiero
+- **Administrativo**: Acceso a datos maestros y finanzas
+- **Finanzas**: Acceso exclusivo al módulo financiero
+- **HSE/Supervisor**: Acceso operativo limitado
+
+## ☁️ Infraestructura Podman (Producción)
+
+### Iniciar Stack Completo
 
 ```powershell
-# As Administrator
-winget install RedHat.Podman
-
-# As regular user (new terminal)
+# Windows
 podman machine init
 podman machine start
 pip install podman-compose
-```
 
-### Start the Stack
-
-```powershell
 cd C:\Users\Gustavo\.gemini\antigravity\scratch
-
-# Start services
 podman-compose -f podman-compose.yml up -d
-
-# Wait ~15 seconds
-
-# View Temporal UI
-# Open http://localhost:8080
 ```
 
-## 📋 Services
+### Servicios
 
-- **MySQL**: localhost:3306 (user: pna_user, pass: pna_pass)
+- **MySQL**: localhost:3306
 - **Temporal Server**: localhost:7233
 - **Temporal UI**: http://localhost:8080
-- **Worker**: Running in container
+- **Streamlit**: http://localhost:8501
 
-## 🧪 Run Tests
+## 📚 Documentación Adicional
 
-```powershell
-# All tests
-podman-compose -f podman-compose.yml exec worker pytest -v tests/
+- **PODMAN_SETUP.md**: Guía completa de instalación
+- **db/migrations/**: Schema de base de datos
+- **frontend/services/**: Servicios mock con lógica de negocio
 
-# Unit only
-podman-compose -f podman-compose.yml exec worker pytest -v tests/unit/
+## 🎯 Roadmap
 
-# Integration
-podman-compose -f podman-compose.yml exec worker pytest -v tests/integration/
+- [x] Módulo Financiero con dashboard y KPIs
+- [x] Integración Operaciones ↔ Finanzas
+- [x] Chat AI con análisis dual (operativo + financiero)
+- [x] Sistema de recomendaciones automáticas
+- [ ] Integración con sistemas externos (SAP, Bancos)
+- [ ] Reportes automatizados por email
+- [ ] Workflow de aprobaciones financieras
 
-# E2E
-podman-compose -f podman-compose.yml exec worker pytest -v -m e2e tests/e2e/
-```
+## 👥 Equipo
 
-## 🛑 Stop Services
+Desarrollado por el equipo de AbandonPro.
 
-```powershell
-podman-compose -f podman-compose.yml down
-```
+---
 
-## 📖 Documentation
-
-- **PODMAN_SETUP.md** - Complete installation and usage guide
-- **testing_infrastructure.md** - Testing strategy documentation
-- **.env** - Configuration (change for cloud deployment)
-
-## ☁️ Cloud Ready
-
-Same stack works on Linux VMs without changes:
-
-```bash
-# On Linux VM
-podman-compose -f podman-compose.yml up -d
-```
-
-Update `.env` for production values!
-
-## 🔧 Key Files
-
-- `Containerfile` - OCI-compliant worker image
-- `podman-compose.yml` - Service orchestration
-- `.env` - Environment configuration
-- `db/migrations/` - Database schema
-- `db/seeds/` - Test data
-- `backend/` - Python worker code
-- `tests/` - Unit/integration/E2E tests
+**Versión**: 2.1.0 | **Estado**: Dev/Mock Mode | **Última actualización**: 2025-02-14

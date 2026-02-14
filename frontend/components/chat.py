@@ -99,48 +99,46 @@ def render_chat():
     # Redondo, color primario, sombra
     fab_css = """
         position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 60px;
-        height: 60px;
+        bottom: 30px;
+        right: 30px;
+        width: 70px;
+        height: 70px;
         z-index: 10000;
-        background-color: transparent; /* El botón de streamlit tiene su propio estilo, ajustamos el container */
+        background-color: transparent;
     """
     
     # Aplicamos float al container del botón
     fab_container.float(fab_css)
 
     # Inyeccion CSS extra para hacer el botón realmente redondo y bonito
-    # Ya que st.button es rectangular por defecto.
     st.markdown("""
         <style>
-        /* Selector específico para el botón FAB basado en su key o estructura */
-        /* Nota: Streamlit genera IDs dinámicos, pero podemos intentar targetear por jerarquía si es único */
-        
-        div.stButton > button[kind="secondary"] {
-            /* Estilos base para resetear */
-        }
-        
-        /* Buscamos el botón dentro del web component flotante si es posible, o usamos un selector global seguro */
-        /* HACK: Estilizar TODOS los botones que sean SOLAMENTE un emoji de chat 💬 */
-        div.stButton > button:has(div p:contains('💬')) {
-            width: 60px !important;
-            height: 60px !important;
-            border-radius: 30px !important;
-            background-color: #007bff !important;
+        /* HACK FUERTE: Targetear el botón por su atributo title (help) o estructura interna */
+        button[title="Abrir/Cerrar Asistente"] {
+            width: 70px !important;
+            height: 70px !important;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
             color: white !important;
-            border: none !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
-            font-size: 24px !important;
+            border: 2px solid rgba(255,255,255,0.2) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+            font-size: 30px !important;
             padding: 0 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            transition: transform 0.2s !important;
+            z-index: 99999 !important;
         }
-        div.stButton > button:has(div p:contains('💬')):hover {
-            transform: scale(1.1) !important;
-            background-color: #0056b3 !important;
+        button[title="Abrir/Cerrar Asistente"]:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 6px 20px rgba(0,123,255,0.6) !important;
+            background: linear-gradient(135deg, #0056b3 0%, #003d80 100%) !important;
+            border-color: white !important;
+        }
+        /* Eliminar estilos internos del div del texto */
+        button[title="Abrir/Cerrar Asistente"] div {
+            display: inline !important;
         }
         </style>
     """, unsafe_allow_html=True)
+```
