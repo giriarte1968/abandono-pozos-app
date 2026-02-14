@@ -1,0 +1,150 @@
+# AbandonPro - Full Stack en DigitalOcean App Platform
+# Stack completo: Streamlit + Temporal + MySQL
+
+name: abandono-pozos-app-fullstack
+region: nyc  # Podes cambiar: nyc, sfo, ams, sgp, lon, fra, tor, blr
+
+# ==========================================
+# SERVICIO 1: STREAMLIT FRONTEND
+# ==========================================
+services:
+  - name: frontend
+    source_dir: /
+    dockerfile_path: Dockerfile
+    
+    # Recursos
+    instance_size_slug: basic-xs  # $6/mes - 512MB RAM, 1 CPU
+    instance_count: 1
+    
+    # Puerto HTTP
+    http_port: 8501
+    
+    # Health check
+    health_check:
+      http_path: /_stcore/health
+      port: 8501
+    
+    # Variables de entorno
+    envs:
+      - key: STREAMLIT_SERVER_PORT
+        value: "8501"
+      - key: STREAMLIT_SERVER_ADDRESS
+        value: "0.0.0.0"
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+        value: "false"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      
+      # Conexión a MySQL (usando nombre del servicio)
+      - key: DB_HOST
+        value: mysql  # Nombre del servicio MySQL
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: abandonpro_db
+      - key: DB_USER
+        value: app_user
+      - key: DB_PASSWORD
+        value: ${DB_APP_PASSWORD}  # Secreto
+      
+      # Conexión a Temporal
+      - key: TEMPORAL_HOST
+        value: temporal  # Nombre del servicio Temporal
+      - key: TEMPORAL_PORT
+        value: "7233"
+      
+      # API Key (opcional)
+      - key: GEMINI_API_KEY
+        value: ${GEMINI_API_KEY}
+        type: SECRET
+    
+    # Ruta pública
+    routes:
+      - path: /
+
+  # ==========================================
+  # SERVICIO 2: TEMPORAL SERVER
+  # ==========================================
+  - name: temporal
+    image:
+      registry: temporalio
+      repository: server
+      tag: 1.29.1
+    
+    # Recursos (Temporal necesita más memoria)
+    instance_size_slug: basic-s  # $12/mes - 1GB RAM, 1 CPU
+    instance_count: 1
+    
+    # Puerto gRPC (no HTTP)
+    internal_ports:
+      - port: 7233
+        protocol: tcp
+    
+    # Comando de inicio
+    run_command: /opt/temporal/bin/temporal-server --env=development start
+    
+    # Variables para Temporal con MySQL
+    envs:
+      - key: DB
+        value: mysql8
+      - key: DB_PORT
+        value: "3306"
+      - key: MYSQL_USER
+        value: app_user
+      - key: MYSQL_PWD
+        value: ${DB_APP_PASSWORD}
+      - key: MYSQL_SEEDS
+        value: mysql  # Nombre del servicio MySQL
+      - key: DBNAME
+        value: temporal_db
+
+  # ==========================================
+  # SERVICIO 3: MYSQL DATABASE
+  # ==========================================
+  - name: mysql
+    image:
+      registry: mysql
+      repository: mysql
+      tag: "8.0"
+    
+    # Recursos
+    instance_size_slug: basic-xs  # $6/mes - 512MB RAM, 1 CPU
+    instance_count: 1
+    
+    # Puerto interno (no expuesto públicamente)
+    internal_ports:
+      - port: 3306
+        protocol: tcp
+    
+    # Variables de entorno para MySQL
+    envs:
+      - key: MYSQL_ROOT_PASSWORD
+        value: ${DB_ROOT_PASSWORD}  # Secreto
+      - key: MYSQL_DATABASE
+        value: abandonpro_db
+      - key: MYSQL_USER
+        value: app_user
+      - key: MYSQL_PASSWORD
+        value: ${DB_APP_PASSWORD}  # Secreto
+    
+    # Volumen persistente para datos
+    # Nota: En App Platform los datos se pierden si el contenedor se reinicia
+    # Para producción real, usar DigitalOcean Managed Database MySQL
+
+# ==========================================
+# VARIABLES GLOBALES (SECRETO)
+# ==========================================
+environment_variables:
+  - key: DB_ROOT_PASSWORD
+    value: ${DB_ROOT_PASSWORD}
+    type: SECRET
+  - key: DB_APP_PASSWORD
+    value: ${DB_APP_PASSWORD}
+    type: SECRET
+  - key: GEMINI_API_KEY
+    value: ${GEMINI_API_KEY}
+    type: SECRET
+
+# Build configuration
+build:
+  dockerfile: Dockerfile

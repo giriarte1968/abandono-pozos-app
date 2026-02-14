@@ -66,7 +66,7 @@ def render_view():
     df['fecha_hora'] = df['timestamp_utc'].apply(lambda x: x.strftime("%d/%m/%Y %H:%M"))
     
     st.dataframe(
-        df[['fecha_hora', 'id_usuario', 'tipo_evento', 'entidad', 'entidad_id', 'hash_evento']],
+        df[['fecha_hora', 'id_usuario', 'tipo_evento', 'entidad', 'entidad_id']],
         use_container_width=True,
         hide_index=True,
         column_config={
@@ -74,8 +74,7 @@ def render_view():
             "id_usuario": "Usuario",
             "tipo_evento": "Acción",
             "entidad": "Entidad",
-            "entidad_id": "ID Entidad",
-            "hash_evento": "Certificado (Hash)"
+            "entidad_id": "ID Entidad"
         }
     )
 
@@ -89,8 +88,8 @@ def render_view():
     ev = next((e for e in filtered_events if e['id'] == selected_id), None)
     if ev:
         with st.container(border=True):
-            st.markdown(f"#### {ev['tipo_evento']} #{ev['id']}")
-            st.code(f"Hash: {ev['hash_evento']}\nHash Previo: {ev['hash_previo']}", language="markdown")
+            st.success("🛡️ Registro Certificado e Inmutable por Blockchain")
+            st.markdown(f"#### Detalle: {ev['tipo_evento']}")
             
             # --- VISUALIZACIÓN DE EVIDENCIA ---
             if ev['tipo_evento'] == "EVIDENCE_UPLOAD":

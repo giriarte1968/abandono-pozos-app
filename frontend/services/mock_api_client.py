@@ -6,16 +6,19 @@ import math
 from datetime import datetime, timedelta
 from .database_service import DatabaseService
 from .audit_service import AuditService
+from .ai_service import AIService
 
 class MockApiClient:
     """
     Simula la interacción con el Backend (FastAPI) y el Orquestador (Temporal).
     Utiliza DatabaseService para MySQL y un archivo JSON local como Persistencia de Respaldo.
+    Ahora integra AIService (Gemini Flash) para respuestas inteligentes.
     """
 
     def __init__(self, audit_service=None):
         self.db = DatabaseService()
         self.audit = audit_service or AuditService(self.db)
+        self.ai = AIService() # Inicializar servicio de IA
         self.storage_path = "frontend/services/persistence_db.json"
         
         # Cargar datos iniciales desde JSON si existe
@@ -105,6 +108,78 @@ class MockApiClient:
                 "responsable": "Juan Pérez",
                 "lat": -46.5337, "lon": -67.6172,  # Cañadón Seco, Santa Cruz
                 "workflow_status": "WAITING_FINAL_APPROVAL"
+            },
+            {
+                "id": "P-001",
+                "nombre": "Pozo P-001 (YPF)",
+                "yacimiento": "Manantiales Behr",
+                "campana": "Campaña YPF 2025",
+                "estado_proyecto": "EN_EJECUCION",
+                "progreso": 25,
+                "proximo_hito": "Preparación de Superficie",
+                "responsable": "Pedro López",
+                "lat": -45.9123, "lon": -67.1234,
+                "workflow_status": "WAITING_DAILY_REPORT"
+            },
+            {
+                "id": "P-002",
+                "nombre": "Pozo P-002 (YPF)",
+                "yacimiento": "Los Toldos",
+                "campana": "Campaña YPF 2025",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 5,
+                "proximo_hito": "Permisos Municipales",
+                "responsable": "Ana Martínez",
+                "lat": -45.8234, "lon": -67.2345,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT"
+            },
+            {
+                "id": "H-101",
+                "nombre": "Pozo H-101 (YPF)",
+                "yacimiento": "Bajada del Palo",
+                "campana": "Campaña YPF 2025",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 0,
+                "proximo_hito": "Evaluación Técnica",
+                "responsable": "Luis Fernández",
+                "lat": -45.7345, "lon": -67.3456,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT"
+            },
+            {
+                "id": "H-102",
+                "nombre": "Pozo H-102 (Petrobras)",
+                "yacimiento": "El Huemul",
+                "campana": "Campaña Petrobras 2025",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 15,
+                "proximo_hito": "Movilización Equipos",
+                "responsable": "Carlos Ruiz",
+                "lat": -45.6456, "lon": -67.4567,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT"
+            },
+            {
+                "id": "T-201",
+                "nombre": "Pozo T-201 (Petrobras)",
+                "yacimiento": "Tierra del Fuego",
+                "campana": "Campaña Petrobras 2025",
+                "estado_proyecto": "EN_EJECUCION",
+                "progreso": 40,
+                "proximo_hito": "Cementación Faja 1",
+                "responsable": "Roberto Silva",
+                "lat": -53.8123, "lon": -67.8912,
+                "workflow_status": "WAITING_DAILY_REPORT"
+            },
+            {
+                "id": "C-301",
+                "nombre": "Pozo C-301 (Petrobras)",
+                "yacimiento": "Cerro Dragón",
+                "campana": "Campaña Petrobras 2025",
+                "estado_proyecto": "COMPLETADO",
+                "progreso": 100,
+                "proximo_hito": "Archivo Final",
+                "responsable": "María Torres",
+                "lat": -45.5567, "lon": -67.5678,
+                "workflow_status": "COMPLETED"
             }
         ]
 
@@ -207,7 +282,16 @@ class MockApiClient:
     def get_project_detail(self, project_id):
         """Retorna detalle completo de un proyecto con lógica basada en el Estado."""
         # Simula busqueda en persistencia local
-        project = next((p for p in self._db_projects if p['id'] == project_id), None)
+        # Robustez: Strip y comparacion case-insensitive si falla exacto
+        if not project_id: return None
+        
+        target = str(project_id).strip()
+        project = next((p for p in self._db_projects if p['id'] == target), None)
+        
+        # Fallback case-insensitive
+        if not project:
+            project = next((p for p in self._db_projects if p['id'].upper() == target.upper()), None)
+            
         if not project:
             return None
         
@@ -446,7 +530,7 @@ class MockApiClient:
     def send_signal_dtm(self, project_id, resources_list):
         """Signal: Admin asigna recursos (DTM)."""
         print(f"[MOCK] Enviando Signal 'AsignarRecursos' para {project_id}. Equipos: {resources_list}")
-        time.sleep(1) # Simula latencia red
+        # time.sleep(1) # Simula latencia red
         return True
 
     def send_signal_check_personal(self, project_id, personal_data):
@@ -479,7 +563,7 @@ class MockApiClient:
         """Simula la transmisión por un canal no-IP."""
         print(f"[MOCK] Transmitiendo vía {channel}: {encoded_msg}")
         # Simular delay de satélite o red de texto
-        time.sleep(2)
+        # time.sleep(2)
         return True
 
     def send_signal_parte_diario(self, project_id, report_data, channel="INTERNET", user_id="unknown", user_role="unknown"):
@@ -528,7 +612,7 @@ class MockApiClient:
 
         # Flujo Normal Online
         print(f"[MOCK] Enviando Signal 'ParteDiario' via {channel} para {project_id}.")
-        time.sleep(1.5)
+        # time.sleep(1.5)
         return {"status": "SENT", "msg": "Parte enviado exitosamente por Internet"}
 
     # --- LOGICA DE SINCRONIZACION & CONECTIVIDAD ---
@@ -553,7 +637,7 @@ class MockApiClient:
             return True, "No hay datos pendientes."
 
         # Simular procesamiento
-        time.sleep(2)
+        # time.sleep(2)
         self._outbox = []
         self._save_persistence()
         return True, f"Sincronizados {count} eventos exitosamente."
@@ -614,112 +698,395 @@ class MockApiClient:
              "msg": "He revisado la certificación de Roberto Ruiz, pero sigue apareciendo como médica vencida."},
         ]
 
-    def send_chat_message(self, project_id, user_role, message):
+    def send_chat_message(self, project_id, user_role, message, chat_history=None):
         """
-        MOTOR DE IA OPERATIVA ANTIGRAVITY v3.5 (Expert Process Engine)
-        Conocimiento: Ciclo de Vida P&A, Reglas HSE, Listados Reales y Data-Driven Search.
+        MOTOR DE IA OPERATIVA ANTIGRAVITY v4.0 (Hybrid RAG)
+        Si hay API Key, usa Gemini 1.5 Flash con datos en vivo.
+        Si no, usa el motor de reglas legacy v3.5.
         """
-        print(f"[MOCK] AI Brain v3.5: Scanning for '{message}' (Context: {project_id or 'Global'})")
+        print(f"\n[AI DEBUG] Mensaje Recibido: '{message}'")
         
+        # 0. RESOLUCIÓN DE PROYECTO OBJETIVO
         msg_lower = message.lower()
-        response_msg = ""
-        
-        # 1. BÚSQUEDA GLOBAL / LISTADOS DE POZOS
-        if any(word in msg_lower for word in ["listado", "pozos", "todos los pozos", "general", "yacimientos"]):
-            response_msg = "🤖 **Reporte Geral de Pozos Activos (Visión Global):**\n\n"
-            for p in self._db_projects:
-                response_msg += (
-                    f"📍 **{p['nombre']}** ({p['id']})\n"
-                    f"   - Yacimiento: {p['yacimiento']}\n"
-                    f"   - Estado: `{p['estado_proyecto']}` | Avance: {p['progreso']}%\n"
-                )
-            response_msg += "\n¿Deseas el detalle técnico de algún pozo en particular? O puedes pedirme un 'Análisis de Situación'."
-
-        # 2. CONOCIMIENTO INTEGRAL DEL PROCESO (Documento Inicial P&A)
-        elif any(word in msg_lower for word in ["proceso", "ciclo", "etapa", "pasos", "documento inicial", "fases", "abandono"]):
-            response_msg = (
-                "🤖 **Conocimiento Integral del Proceso de Abandono:**\n\n"
-                "El proceso se divide en **6 ETAPAS** obligatorias que garantizan la seguridad y trazabilidad:\n\n"
-                "• **1. Inicio Trámite**: Carga de la Justificación Técnica.\n"
-                "• **2. Planificación**: Asignación de recursos (Personal, Equipos, Logística) tras el DTM.\n"
-                "• **3. Ejecución**: Fase operativa donde se rinde el *Parte Diario*. El sistema bloquea si hay fallas HSE.\n"
-                "• **4. Incidencia (Bloqueo)**: Estado disparado ante riesgos críticos (HSE/Técnico).\n"
-                "• **5. Cierre & Auditoría**: Validación de evidencias físicas y documentales.\n"
-                "• **6. Finalizado**: Cierre legal del expediente.\n\n"
-                "**Reglas de Oro**: \n"
-                "- Validaciones Médicas e Inducción son AUTOMÁTICAS y provienen de sistemas maestros.\n"
-                "- El stock bajo mínimo permite operar bajo 'Riesgo Asumido' (Estado Parcial)."
-            )
-
-        # 3. IDENTIFICACIÓN DE POZO / PERSONAL / CARGOS (Who is Who)
         target_project = project_id
+        
+        # Intentar inferir proyecto del mensaje si no está seleccionado explícitamente
         for p in self._db_projects:
             if p['id'].lower() in msg_lower or p['nombre'].lower() in msg_lower:
                 target_project = p['id']
-
+                
         project = self.get_project_detail(target_project) if target_project else None
+        
+        # --- OPCIÓN A: INTELIGENCIA ARTIFICIAL REAL (Gemini) ---
+        if self.ai.is_available():
+            print(f"[AI DEBUG] Usando Motor Generativo (Gemini)")
+            
+            # Recopilar Contexto Completo
+            context_data = project if project else None
+            
+            # Si quiere logística global, inyectamos eso también
+            if "logistica" in msg_lower or "transporte" in msg_lower:
+                if not context_data: 
+                     context_data = {}
+                context_data['global_logistics'] = self.get_all_logistics()
 
-        if any(word in msg_lower for word in ["quien", "rol", "personal", "gente", "supervisor", "hse", "operario", "médico", "inducción"]):
-            if not project:
-                response_msg = "🤖 Por favor selecciona un pozo para ver quién es quién. A nivel general, el equipo estándar por pozo incluye 1 Supervisor, 1 HSE y 2 Ayudantes."
-            else:
-                response_msg = f"🤖 **Equipo Asignado al Pozo {target_project}:**\n\n"
-                for p in project['personnel_list']:
-                    # Filtro por cargo si se solicita
-                    if any(role.lower() in msg_lower for role in ["supervisor", "hse", "ayudante", "operario"]) and not any(role.lower() in msg_lower for role in p['role'].lower().split()):
-                        continue
-                        
-                    status = "✅ APTO" if p['medical_ok'] and p['induction_ok'] else "🚨 NO APTO"
-                    crit = " (CRÍTICO)" if p['critical'] else ""
-                    response_msg += f"👤 **{p['name']}** - {p['role']}{crit}\n   - Estado: {status}\n"
-                    if not p['medical_ok']: 
-                        response_msg += f"   - 🩺 Falla: {p['medical_source']} (Vencimiento: 2025-11-15)\n"
-                    if not p['induction_ok']:
-                        response_msg += "   - 🦺 Falla: Inducción HSE vencida.\n"
-                    response_msg += "\n"
-
-        # 4. DETALLES TÉCNICOS / LOGÍSTICA / STOCK
-        elif any(word in msg_lower for word in ["ubicacion", "gps", "coordenadas", "longitud", "latitud", "yacimiento"]):
+            # Inyección de Clima (WeatherService)
             if project:
+                try:
+                    from .weather_service import WeatherService
+                    ws = WeatherService()
+                    weather_data = ws.get_weather(project.get('lat', -46.0), project.get('lon', -67.0))
+                    if weather_data:
+                        context_data['weather_realtime'] = weather_data
+                except Exception as e:
+                    print(f"[AI DEBUG] Error fetching weather for context: {e}")
+            
+            # Inyección de Datos Financieros
+            if any(word in msg_lower for word in ["finanzas", "financiero", "contrato", "backlog", "certificacion", "factura", "cobro", "costo", "presupuesto", "margen", "rentabilidad"]):
+                try:
+                    from .financial_service_mock import financial_service
+                    if not context_data:
+                        context_data = {}
+                    
+                    # Inyectar KPIs financieros
+                    context_data['financial_kpis'] = financial_service.get_kpis_dashboard()
+                    
+                    # Inyectar contratos
+                    context_data['contratos'] = financial_service.get_contratos()
+                    
+                    # Inyectar certificaciones recientes
+                    context_data['certificaciones'] = financial_service.get_certificaciones()
+                    
+                    # Si hay un pozo específico, agregar sus costos
+                    for p in financial_service.get_pozos():
+                        if p['ID_WELL'].lower() in msg_lower:
+                            context_data['pozo_financiero'] = p
+                            context_data['costos_pozo'] = financial_service.get_costos_pozo(p['ID_WELL'])
+                            cert_pozo = next((c for c in financial_service.get_certificaciones() if c['ID_WELL'] == p['ID_WELL']), None)
+                            if cert_pozo:
+                                context_data['certificacion_pozo'] = cert_pozo
+                            break
+                    
+                    print(f"[AI DEBUG] Contexto financiero inyectado")
+                except Exception as e:
+                    print(f"[AI DEBUG] Error inyectando contexto financiero: {e}")
+
+            # Llamada al LLM con Historial
+            response_msg = self.ai.generate_response(message, context_data, user_role, chat_history=chat_history)
+            
+            # Post-Procesamiento (Simulado)
+            # Aquí podríamos parsear JSON si la IA devolviera acciones estructuradas
+            
+        # --- OPCIÓN B: MOTOR DE REGLAS (Legacy Fallback) ---
+        else:
+            print(f"[AI DEBUG] Usando Motor de Reglas (Legacy)")
+            
+            response_msg = ""
+            # ... (Lógica Legacy existente) ...
+            
+            # 1. BÚSQUEDA GLOBAL / LISTADOS DE POZOS
+            if any(word in msg_lower for word in ["listado", "pozos", "todos los pozos", "general", "yacimientos"]):
+                response_msg = "🤖 **Reporte Geral de Pozos Activos (Visión Global):**\n\n"
+                for p in self._db_projects:
+                    response_msg += (
+                        f"📍 **{p['nombre']}** ({p['id']})\n"
+                        f"   - Yacimiento: {p['yacimiento']}\n"
+                        f"   - Estado: `{p['estado_proyecto']}` | Avance: {p['progreso']}%\n"
+                    )
+                response_msg += "\n¿Deseas el detalle técnico de algún pozo en particular? O puedes pedirme un 'Análisis de Situación'."
+
+            # 2. CONOCIMIENTO INTEGRAL DEL PROCESO
+            elif any(word in msg_lower for word in ["proceso", "ciclo", "etapa", "pasos", "documento inicial", "fases", "abandono"]):
                 response_msg = (
-                    f"🤖 **Identificación Técnica {project['id']}:**\n"
-                    f"• Coordenadas: Lat {project['lat']}, Lon {project['lon']}\n"
-                    f"• Yacimiento: {project['yacimiento']}\n"
-                    f"• Responsable: {project['responsable']}"
+                    "🤖 **Conocimiento Integral del Proceso de Abandono (Modo Offline):**\n\n"
+                    "El proceso se divide en **6 ETAPAS** obligatorias:\n"
+                    "1. Inicio Trámite\n2. Planificación (DTM)\n3. Ejecución\n4. Incidencia\n5. Cierre & Auditoría\n6. Finalizado\n"
                 )
-            else:
-                response_msg = "🤖 Por favor selecciona un pozo para ver sus coordenadas exactas."
 
-        elif any(word in msg_lower for word in ["logistica", "transporte", "stock", "insumos", "camion", "minibus"]):
-            if project:
-                if "stock" in msg_lower or "insumos" in msg_lower:
-                    response_msg = f"🤖 **Balance de Insumos ({target_project}):**\n"
-                    for s in project['stock_list']:
-                        response_msg += f"- {s['item']}: {s['current']} {s['unit']} (Mínimo: {s['min']})\n"
+            # ... (Resto de reglas legacy) ...
+            
+            # 3. WHO IS WHO
+            elif any(word in msg_lower for word in ["quien", "rol", "personal", "gente", "supervisor", "hse", "operario"]):
+                if project:
+                    response_msg = f"🤖 **Equipo Asignado al Pozo {target_project}:**\n\n"
+                    for p in project['personnel_list']:
+                        status = "✅" if p['medical_ok'] else "🚨"
+                        response_msg += f"👤 **{p['name']}** - {p['role']} {status}\n"
                 else:
-                    response_msg = f"🤖 **Plan de Logística ({target_project}):**\n"
-                    for t in project['transport_list']:
-                        response_msg += f"- {t['type']} ({t['driver']}): {t['status']} (Arribo: {t['time_plan']})\n"
-            else:
-                response_msg = "🤖 Debes estar en el detalle de un pozo para ver su logística o stock."
+                    response_msg = "🤖 Selecciona un pozo para ver el personal."
 
-        elif any(word in msg_lower for word in ["analiza", "recomienda", "hacer", "estado", "situacion", "conclusión", "qué hago"]):
-            if project:
-                response_msg = f"🤖 **Análisis de AbandonPro para {target_project}:**\n\n"
-                response_msg += self.analyze_project_status(target_project)
-            else:
-                response_msg = "🤖 Por favor selecciona un pozo para que pueda analizar su estado operativo actual."
-
-        # 5. FALLBACK
-        if not response_msg:
-             response_msg = (
-                "🤖 **Soy tu Asistente Operativo.**\n"
-                "Puedo ayudarte con:\n"
-                "- 📜 **Listados**: 'Dame la lista de todos los pozos'.\n"
-                "- 👤 **Personal**: '¿Quién es el supervisor?' o '¿Qué gente tengo?'.\n"
-                "- 📍 **Fases**: 'Explícame el proceso de abandono' o 'Cuáles son las etapas'.\n"
-                "- ⚙️ **Operativo**: 'Estado de stock', 'Ubicación GPS' o 'Logística'."
-            )
+            # 4. LOGISTICA / TECNICO
+            elif any(word in msg_lower for word in ["ubicacion", "gps", "logistica", "stock", "cementacion"]):
+                if project:
+                     response_msg = f"🤖 **Datos Técnicos de {target_project}:**\n"
+                     response_msg += f"• Ubicación: {project['lat']}, {project['lon']}\n"
+                     response_msg += f"• Estado: {project['status']}\n"
+                     response_msg += "Para más detalles, activa el modo Online con Gemini API."
+                else:
+                    response_msg = "🤖 Selecciona un pozo para ver datos técnicos."
+            
+            # ANÁLISIS DE SITUACIÓN FINANCIERA INTEGRAL
+            elif "analisis de situacion financiera" in msg_lower or "análisis financiero integral" in msg_lower:
+                try:
+                    from .financial_service_mock import financial_service
+                    
+                    kpis = financial_service.get_kpis_dashboard()
+                    contratos = financial_service.get_contratos()
+                    certificaciones = financial_service.get_certificaciones()
+                    facturas = financial_service.get_facturas()
+                    
+                    response_msg = "🤖 **ANÁLISIS DE SITUACIÓN FINANCIERA - REPORTE EJECUTIVO**\n\n"
+                    response_msg += "="*60 + "\n"
+                    
+                    # 1. SALUD FINANCIERA GENERAL
+                    response_msg += "\n📊 **1. SALUD FINANCIERA GENERAL**\n\n"
+                    response_msg += f"💰 Backlog Contractual: ${kpis['backlog_contractual']:,.2f}\n"
+                    response_msg += f"📈 Avance Global: {kpis['avance_financiero_pct']:.1f}% (Financiero) / {kpis['avance_fisico_pct']:.1f}% (Físico)\n"
+                    response_msg += f"💵 Saldo de Caja: ${kpis['saldo_caja']:,.2f}\n"
+                    response_msg += f"⏱️ Días de Cobertura: {kpis['dias_cobertura']:.0f} días\n"
+                    response_msg += f"🏦 Capital de Trabajo Requerido: ${kpis['capital_trabajo']:,.2f}\n\n"
+                    
+                    # Evaluación general
+                    if kpis['alerta_cobertura']:
+                        response_msg += "🔴 **ESTADO: CRÍTICO** - Liquidez comprometida\n"
+                    elif kpis['backlog_contractual'] < 1000000:
+                        response_msg += "🟡 **ESTADO: ATENCIÓN** - Backlog bajo\n"
+                    else:
+                        response_msg += "🟢 **ESTADO: SALUDABLE** - Indicadores dentro de parámetros\n"
+                    
+                    # 2. PORTFOLIO DE CONTRATOS
+                    response_msg += "\n" + "="*60 + "\n"
+                    response_msg += "\n📋 **2. PORTFOLIO DE CONTRATOS**\n\n"
+                    for c in contratos:
+                        avance = ((c['MONTO_TOTAL_CONTRACTUAL'] - c['BACKLOG_RESTANTE']) / c['MONTO_TOTAL_CONTRACTUAL'] * 100) if c['MONTO_TOTAL_CONTRACTUAL'] > 0 else 0
+                        response_msg += f"• {c['NOMBRE_CONTRATO']}\n"
+                        response_msg += f"  Backlog: ${c['BACKLOG_RESTANTE']:,.2f} | Avance: {avance:.1f}% | Cert: {c['total_certificaciones']}/{c['CANTIDAD_POZOS']}\n\n"
+                    
+                    # 3. GESTIÓN DE COBRANZAS
+                    response_msg += "="*60 + "\n"
+                    response_msg += "\n📄 **3. GESTIÓN DE COBRANZAS**\n\n"
+                    total_certificado = sum(cert['MONTO_CERTIFICADO'] for cert in certificaciones)
+                    facturas_cobradas = len([f for f in facturas if f['ESTADO'] == 'COBRADA'])
+                    facturas_pendientes = len([f for f in facturas if f['ESTADO'] == 'EMITIDA'])
+                    
+                    response_msg += f"• Total Certificado: ${total_certificado:,.2f}\n"
+                    response_msg += f"• Facturas Cobradas: {facturas_cobradas}\n"
+                    response_msg += f"• Facturas Pendientes: {facturas_pendientes}\n\n"
+                    
+                    # 4. RECOMENDACIONES ESTRATÉGICAS PRIORIZADAS
+                    response_msg += "="*60 + "\n"
+                    response_msg += "\n💡 **4. RECOMENDACIONES ESTRATÉGICAS PRIORIZADAS**\n\n"
+                    
+                    recomendaciones = []
+                    
+                    # Prioridad 1: Liquidez
+                    if kpis['alerta_cobertura']:
+                        recomendaciones.append(("🔴 URGENTE", "LIQUIDEZ", "Días de cobertura críticos. Gestionar cobranzas inmediatamente y evaluar línea de crédito."))
+                    
+                    # Prioridad 2: Backlog
+                    if kpis['backlog_contractual'] < 1000000:
+                        recomendaciones.append(("🟡 ALTA", "BACKLOG", "Backlog menor a $1M. Priorizar búsqueda de nuevos contratos."))
+                    
+                    # Prioridad 3: Pozos completados sin certificar
+                    pozos_completados = [p for p in financial_service.get_pozos() if p['ESTADO_PROYECTO'] == 'COMPLETADO']
+                    pozos_no_certificados = [p for p in pozos_completados if not any(c['ID_WELL'] == p['ID_WELL'] for c in certificaciones)]
+                    if pozos_no_certificados:
+                        wells = ', '.join([p['ID_WELL'] for p in pozos_no_certificados])
+                        recomendaciones.append(("🟡 ALTA", "CERTIFICACIÓN", f"Pozos {wells} completados sin certificar. Certificar para liberar flujo de caja."))
+                    
+                    # Prioridad 4: Facturas vencidas
+                    import datetime as dt_module
+                    hoy = dt_module.datetime.now()
+                    facturas_vencidas = [f for f in facturas if f['ESTADO'] == 'EMITIDA' and f['FECHA_VENCIMIENTO'] < hoy]
+                    if facturas_vencidas:
+                        total_vencido = sum(f['MONTO'] for f in facturas_vencidas)
+                        recomendaciones.append(("🟠 MEDIA", "COBRANZA", f"{len(facturas_vencidas)} facturas vencidas (${total_vencido:,.2f}). Contactar clientes."))
+                    
+                    # Mostrar recomendaciones
+                    if recomendaciones:
+                        for prioridad, area, accion in recomendaciones:
+                            response_msg += f"{prioridad} [{area}]\n   → {accion}\n\n"
+                    else:
+                        response_msg += "✅ Sin alertas críticas. Situación financiera estable.\n\n"
+                    
+                    # 5. PRÓXIMOS PASOS SUGERIDOS
+                    response_msg += "="*60 + "\n"
+                    response_msg += "\n🎯 **5. PRÓXIMOS PASOS SUGERIDOS**\n\n"
+                    response_msg += "1. Revisar dashboard financiero detallado\n"
+                    response_msg += "2. Analizar rentabilidad por pozo certificado\n"
+                    response_msg += "3. Evaluar pipeline de nuevos contratos\n"
+                    response_msg += "4. Actualizar proyección de flujo de fondos\n\n"
+                    response_msg += "📊 Para más detalle, consultar: Finanzas → Dashboard\n"
+                    
+                except Exception as e:
+                    response_msg = f"🤖 Error en análisis financiero: {str(e)}"
+            
+            # 5. FINANZAS Y CONTROL CONTRACTUAL CON RECOMENDACIONES
+            elif any(word in msg_lower for word in ["finanzas", "financiero", "contrato", "backlog", "certificacion", "factura", "cobro", "costo", "presupuesto", "margen", "rentabilidad"]):
+                try:
+                    # Importar servicio financiero
+                    from .financial_service_mock import financial_service
+                    
+                    # Detectar si pregunta por un pozo específico
+                    target_well = None
+                    for p in financial_service.get_pozos():
+                        if p['ID_WELL'].lower() in msg_lower:
+                            target_well = p['ID_WELL']
+                            break
+                    
+                    if "backlog" in msg_lower or "contrato" in msg_lower:
+                        # Reporte de backlog con recomendaciones
+                        contratos = financial_service.get_contratos()
+                        total_backlog = sum(c['BACKLOG_RESTANTE'] for c in contratos)
+                        response_msg = f"🤖 **Backlog Contractual Total: ${total_backlog:,.2f} USD**\n\n"
+                        response_msg += "**Detalle por Contrato:**\n"
+                        for c in contratos:
+                            avance = ((c['MONTO_TOTAL_CONTRACTUAL'] - c['BACKLOG_RESTANTE']) / c['MONTO_TOTAL_CONTRACTUAL'] * 100) if c['MONTO_TOTAL_CONTRACTUAL'] > 0 else 0
+                            response_msg += f"📋 {c['NOMBRE_CONTRATO']}\n"
+                            response_msg += f"   • Backlog: ${c['BACKLOG_RESTANTE']:,.2f}\n"
+                            response_msg += f"   • Avance: {avance:.1f}%\n"
+                            response_msg += f"   • Pozos: {c['total_certificaciones']}/{c['CANTIDAD_POZOS']} certificados\n\n"
+                        
+                        # RECOMENDACIONES INTELIGENTES
+                        response_msg += "\n💡 **Recomendaciones:**\n"
+                        if total_backlog < 1000000:
+                            response_msg += "⚠️ **CRÍTICO:** Backlog menor a $1M. Se recomienda priorizar la búsqueda de nuevos contratos para asegurar continuidad operativa.\n"
+                        else:
+                            response_msg += "✅ Backlog saludable. Capacidad operativa asegurada para los próximos 6-9 meses.\n"
+                        
+                        # Recomendar certificación de pozos completados
+                        pozos_completados = [p for p in financial_service.get_pozos() if p['ESTADO_PROYECTO'] == 'COMPLETADO']
+                        pozos_no_certificados = [p for p in pozos_completados if not any(c['ID_WELL'] == p['ID_WELL'] for c in financial_service.get_certificaciones())]
+                        if pozos_no_certificados:
+                            response_msg += f"🎯 **ACCIÓN SUGERIDA:** Hay {len(pozos_no_certificados)} pozo(s) completado(s) sin certificar: {', '.join([p['ID_WELL'] for p in pozos_no_certificados])}. Certificar para liberar flujo de caja.\n"
+                    
+                    elif "certificacion" in msg_lower or "factura" in msg_lower:
+                        # Reporte de certificaciones con recomendaciones
+                        certificaciones = financial_service.get_certificaciones()
+                        facturas = financial_service.get_facturas()
+                        total_cert = sum(c['MONTO_CERTIFICADO'] for c in certificaciones)
+                        
+                        response_msg = f"🤖 **Certificaciones - Total Certificado: ${total_cert:,.2f} USD**\n\n"
+                        response_msg += "**Últimas Certificaciones:**\n"
+                        for cert in certificaciones[-5:]:  # Últimas 5
+                            factura = next((f for f in facturas if f['ID_CERTIFICACION'] == cert['ID_CERTIFICACION']), None)
+                            response_msg += f"📄 Pozo {cert['ID_WELL']}: ${cert['MONTO_CERTIFICADO']:,.2f}"
+                            if factura:
+                                response_msg += f" - Factura {factura['NUMERO_FACTURA']} ({factura['ESTADO']})"
+                            response_msg += "\n"
+                        
+                        # RECOMENDACIONES
+                        facturas_pendientes = [f for f in facturas if f['ESTADO'] == 'EMITIDA']
+                        if facturas_pendientes:
+                            total_pendiente = sum(f['MONTO'] for f in facturas_pendientes)
+                            response_msg += f"\n⚠️ **ATENCIÓN:** {len(facturas_pendientes)} factura(s) pendiente(s) de cobro por ${total_pendiente:,.2f}. Se recomienda gestionar cobranza.\n"
+                        
+                        # Verificar facturas vencidas
+                        hoy = datetime.now()
+                        facturas_vencidas = [f for f in facturas if f['ESTADO'] == 'EMITIDA' and f['FECHA_VENCIMIENTO'] < hoy]
+                        if facturas_vencidas:
+                            total_vencido = sum(f['MONTO'] for f in facturas_vencidas)
+                            response_msg += f"🚨 **URGENTE:** {len(facturas_vencidas)} factura(s) VENCIDA(S) por ${total_vencido:,.2f}. Contactar clientes inmediatamente.\n"
+                    
+                    elif target_well and ("costo" in msg_lower or "margen" in msg_lower or "rentabilidad" in msg_lower):
+                        # Análisis financiero por pozo con recomendaciones
+                        cert = next((c for c in financial_service.get_certificaciones() if c['ID_WELL'] == target_well), None)
+                        costos = financial_service.get_costos_pozo(target_well)
+                        pozo_op = financial_service.get_pozo_by_id(target_well)
+                        
+                        response_msg = f"🤖 **Análisis Financiero - Pozo {target_well}**\n\n"
+                        
+                        if cert:
+                            ingreso = cert['MONTO_CERTIFICADO']
+                            response_msg += f"**Ingresos:**\n"
+                            response_msg += f"• Monto Certificado: ${ingreso:,.2f}\n"
+                            response_msg += f"• Estado: {cert['ESTADO']}\n\n"
+                        else:
+                            ingreso = 0
+                            response_msg += f"**Ingresos:** Sin certificación registrada\n\n"
+                        
+                        if costos:
+                            total_costos = sum(c['MONTO_USD'] for c in costos)
+                            response_msg += f"**Costos (desde Operaciones):**\n"
+                            for costo in costos:
+                                response_msg += f"• {costo['CONCEPTO']}: ${costo['MONTO_USD']:,.2f}\n"
+                            response_msg += f"**Total Costos: ${total_costos:,.2f}**\n\n"
+                            
+                            if ingreso > 0:
+                                margen = ingreso - total_costos
+                                margen_pct = (margen / ingreso * 100)
+                                response_msg += f"**Margen: ${margen:,.2f} ({margen_pct:.1f}%)**\n"
+                                
+                                # RECOMENDACIONES DE RENTABILIDAD
+                                if margen_pct < 20:
+                                    response_msg += "⚠️ **ALERTA DE RENTABILIDAD:** Margen bajo (<20%). Se recomienda:\n"
+                                    response_msg += "   - Revisar eficiencia operativa\n"
+                                    response_msg += "   - Evaluar reducción de costos en próximos pozos similares\n"
+                                    response_msg += "   - Negociar mejores tarifas con proveedores\n"
+                                elif margen_pct > 40:
+                                    response_msg += "✅ **Excelente margen de rentabilidad (>40%).** Mantener prácticas actuales como estándar.\n"
+                                else:
+                                    response_msg += "✓ **Margen aceptable (20-40%).** Dentro de rangos normales.\n"
+                        else:
+                            response_msg += "**Costos:** Sin costos registrados aún\n"
+                            if pozo_op and pozo_op['ESTADO_PROYECTO'] == 'EN_EJECUCION':
+                                response_msg += "💡 **Sugerencia:** El pozo está en ejecución pero sin costos registrados. Verificar registro de gastos en operaciones.\n"
+                    
+                    elif "kpi" in msg_lower or "dashboard" in msg_lower or "resumen" in msg_lower:
+                        # KPIs generales con análisis y recomendaciones
+                        kpis = financial_service.get_kpis_dashboard()
+                        response_msg = "🤖 **KPIs Financieros - Dashboard**\n\n"
+                        response_msg += f"💰 **Backlog Contractual:** ${kpis['backlog_contractual']:,.2f}\n"
+                        response_msg += f"📈 **Avance Financiero:** {kpis['avance_financiero_pct']:.1f}%\n"
+                        response_msg += f"📊 **Avance Físico:** {kpis['avance_fisico_pct']:.1f}%\n"
+                        response_msg += f"💵 **Saldo de Caja:** ${kpis['saldo_caja']:,.2f}\n"
+                        response_msg += f"⏱️ **Días de Cobertura:** {kpis['dias_cobertura']:.0f} días\n"
+                        response_msg += f"🏦 **Capital de Trabajo Req.:** ${kpis['capital_trabajo']:,.2f}\n\n"
+                        
+                        # RECOMENDACIONES ESTRATÉGICAS
+                        response_msg += "💡 **Análisis y Recomendaciones:**\n"
+                        
+                        if kpis['alerta_cobertura']:
+                            response_msg += "🚨 **CRÍTICO - LIQUIDEZ:** Días de cobertura bajos (< 45). ACCIONES RECOMENDADAS:\n"
+                            response_msg += "   1. Acelerar cobranzas de facturas pendientes\n"
+                            response_msg += "   2. Evaluar línea de crédito bancaria\n"
+                            response_msg += "   3. Postergar gastos no críticos\n"
+                            response_msg += "   4. Negociar plazos de pago con proveedores\n"
+                        else:
+                            response_msg += "✅ **Liquidez estable.** Cobertura superior a 45 días.\n"
+                        
+                        if kpis['avance_fisico_pct'] < kpis['avance_financiero_pct']:
+                            response_msg += "⚠️ **Desfasaje Avance:** El avance financiero supera al físico. Revisar si hay certificaciones adelantadas.\n"
+                        
+                        if kpis['saldo_caja'] < kpis['capital_trabajo']:
+                            response_msg += "⚠️ **Capital de Trabajo:** El saldo de caja es inferior al capital de trabajo requerido. Planificar financiamiento.\n"
+                    
+                    else:
+                        # Consulta general de finanzas
+                        response_msg = (
+                            "🤖 **Módulo Financiero - AbandonPro**\n\n"
+                            "Puedo ayudarte con:\n"
+                            "• 📊 **Dashboard** - KPIs y métricas financieras\n"
+                            "• 📋 **Backlog** - Contratos pendientes por certificar\n"
+                            "• 📄 **Certificaciones** - Facturas y cobros\n"
+                            "• 💰 **Costos** - Análisis de rentabilidad por pozo\n\n"
+                            "**Ejemplos de preguntas:**\n"
+                            "• '¿Cuál es el backlog?'\n"
+                            "• 'Análisis financiero del pozo X-123'\n"
+                            "• '¿Qué certificaciones tenemos?'\n"
+                            "• 'Dame los KPIs financieros'\n"
+                        )
+                        
+                except Exception as e:
+                    response_msg = f"🤖 Error al consultar datos financieros: {str(e)}"
+            
+            # 6. FALLBACK
+            if not response_msg:
+                 response_msg = (
+                    "🤖 **Modo Offline (Reglas):**\n"
+                    "No tengo conexión con el cerebro de IA (Gemini). Solo puedo responder comandos básicos sobre listados, personal y ubicación.\n"
+                    "Por favor configura la API Key para razonamiento avanzado."
+                )
 
         return {
             "sent": {"id": "c_user_" + str(int(time.time())), "ts": datetime.now().strftime("%Y-%m-%d %H:%M"), "user": "User", "rol": user_role, "origen": "HUMANO", "msg": message},
@@ -729,6 +1096,7 @@ class MockApiClient:
                 "user": "ASISTENTE_IA",
                 "rol": "IA",
                 "origen": "IA",
-                "msg": response_msg
+                "msg": response_msg,
+                "detected_context": target_project # Retornamos el contexto detectado para que el Frontend lo persista
             }
         }

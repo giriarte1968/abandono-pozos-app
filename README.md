@@ -1,4 +1,4 @@
-# AbandonPro - Sistema de Gestión de Abandono de Pozos (P&A)
+# Abandono Pozos App - Sistema de Gestión de Abandono de Pozos (P&A)
 
 Sistema integral para la gestión de operaciones de Plug & Abandonment (P&A) en la industria petrolera, con módulos operativos, financieros y de control contractual.
 
@@ -185,7 +185,7 @@ podman-compose -f podman-compose.yml up -d
 
 ## 👥 Equipo
 
-Desarrollado por el equipo de AbandonPro.
+Desarrollado por giriarte1968.
 
 ---
 

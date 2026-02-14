@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DossierRegulatorio sistema="PNA_SYSTEM" generado_utc="2026-02-12T22:30:41.941132" regulador="SEC_ARGENTINA">
+  <Pozo>
+    <IdPozo>M-555</IdPozo>
+    <Cementacion>
+      <Diseno>
+        <VolumenTeorico>6.0</VolumenTeorico>
+        <DensidadObjetivo>15.5</DensidadObjetivo>
+        <PresionMaximaPermitida>3000.0</PresionMaximaPermitida>
+        <TipoLechada>Clase G Estándar</TipoLechada>
+        <Intervalo>200.0 - 600.0 m</Intervalo>
+      </Diseno>
+    </Cementacion>
+    <Evidencia/>
+    <Cierre estado="NO_INICIADO"/>
+  </Pozo>
+  <FirmaDigital>
+    <SelloTiempoUTC>2026-02-12T22:30:41.941132</SelloTiempoUTC>
+    <Sistema>PNA_SYSTEM</Sistema>
+  </FirmaDigital>
+</DossierRegulatorio>

@@ -225,7 +225,9 @@ def render_view():
 
                 if versiones:
                     df_ver = pd.DataFrame(versiones)
-                    st.dataframe(df_ver[['version_regulacion_id', 'version_nombre', 'estado', 'fecha_vigencia']], use_container_width=True, hide_index=True)
+                    cols_ver = ['version_regulacion_id', 'version_nombre', 'estado', 'fecha_vigencia']
+                    df_ver_display = ensure_df_columns(df_ver, cols_ver)
+                    st.dataframe(df_ver_display, use_container_width=True, hide_index=True)
                 else:
                     st.info("No hay versiones para esta jurisdicción.")
 
@@ -241,8 +243,7 @@ def render_view():
                 
                 if not versiones_r:
                     st.warning("Esta jurisdicción no tiene versiones definidas.")
-                else:
-                    ver_opts = {v['version_regulacion_id']: v['version_nombre'] for v in versiones_r}
+                    ver_opts = {v.get('version_regulacion_id'): v.get('version_nombre', f"Ver {v.get('version_regulacion_id')}") for v in versiones_r}
                     sel_ver_r = c2.selectbox("Versión Regulatoria", list(ver_opts.keys()), format_func=lambda x: ver_opts[x], key="sel_ver_reg")
                     
                     reglas = comp_svc.get_reglas_por_version(sel_ver_r)

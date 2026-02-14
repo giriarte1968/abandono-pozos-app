@@ -99,8 +99,7 @@ def render_view():
                     "Timestamp": m['ts'],
                     "Canal": m['channel'],
                     "Pozo": m['project_id'],
-                    "Código Recibido": m['raw_code'],
-                    "Contenido Decodificado": f"Operación: {data.get('op')} | {data.get('desc')[:30]}..."
+                    "Contenido": f"Operación: {data.get('op')} | {data.get('desc')[:60]}..."
                 })
             
             st.table(display_data)

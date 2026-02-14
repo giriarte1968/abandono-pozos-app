@@ -49,9 +49,8 @@ def render_view(project_id):
         col_ctx3.metric("👥 Responsable", project.get('responsable', 'N/A'))
 
     # --- REGULATORY GATES (Hybrid Model) ---
+    # --- REGULATORY GATES (Hybrid Model) ---
     st.markdown("##### 🛡️ Status de Gates Regulatorios (External Truth)")
-    if not api.is_online():
-        st.warning("📡 **MODO OFFLINE**: Mostrando último estado conocido. Los 'Overrides' se sincronizarán al recuperar señal.")
     
     g_col1, g_col2, g_col3 = st.columns(3)
     
@@ -561,7 +560,7 @@ def render_view(project_id):
                         st.balloons()
                         st.success(res['msg'])
                     
-                    time.sleep(2)
+                    # time.sleep(2)
                     st.rerun()
     
     # Disclaimer Weather Footer

@@ -1,0 +1,79 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+.coverage
+htmlcov
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs y datos temporales
+*.log
+logs/
+temp/
+tmp/
+
+# Archivos de test
+.pytest_cache/
+tests/
+
+# Documentación (ya está en README)
+docs/
+
+# Archivos de configuración local
+.env.local
+.env.development
+
+# Archivos de audio/video (ejemplos)
+*.mp3
+*.mp4
+*.ogg
+*.wav
+*.avi
+
+# Archivos de imágenes grandes (ejemplos)
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Archivos de documentos (ejemplos)
+*.docx
+*.pdf
+*.xlsx
+
+# Podman/Local development
+podman-compose.yml
+Containerfile*
+PODMAN_SETUP.md
+
+# Scripts de debug
+debug_*.sh
+fix_*.sh
+*.ps1
+*.bat
+
+# Otros
+*.md
+!README.md

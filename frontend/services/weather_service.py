@@ -1,4 +1,5 @@
 import requests
+import streamlit as st
 
 class WeatherService:
     """
@@ -7,7 +8,8 @@ class WeatherService:
     """
     BASELINE_URL = "https://api.open-meteo.com/v1/forecast"
 
-    def get_weather(self, lat, lon):
+    @st.cache_data(ttl=3600) # Caché de 1 hora
+    def get_weather(_self, lat, lon):
         """
         Obtiene clima actual y forecast 24h para coordenadas dadas.
         """
@@ -21,7 +23,7 @@ class WeatherService:
                 "forecast_days": 1
             }
             
-            response = requests.get(self.BASELINE_URL, params=params, timeout=5)
+            response = requests.get(_self.BASELINE_URL, params=params, timeout=5)
             response.raise_for_status()
             data = response.json()
             

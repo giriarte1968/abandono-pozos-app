@@ -170,5 +170,226 @@
             "fecha_validacion": "2026-01-20T10:00:15"
         }
     ],
-    "exportaciones": []
+    "exportaciones": [
+        {
+            "exportacion_regulatoria_id": 1,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_094421.xml",
+            "hash_exportacion": "7697498d04f64139da0f9ab96531049b89f166eefc8049c91e7f902cd8c08fd1",
+            "fecha_generacion": "2026-02-12T12:44:21.347536",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 2,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_095430.xml",
+            "hash_exportacion": "f86bfaab06e72899ee3717c6574f664bd8c64f89fc256308dfbd9bc0113bd4c7",
+            "fecha_generacion": "2026-02-12T12:54:30.577567",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 3,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_104410.xml",
+            "hash_exportacion": "7e3303ca654cdb1e28409814deeca9a979b65d042954b9e525f43fbc25987167",
+            "fecha_generacion": "2026-02-12T13:44:10.428339",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 4,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_112252.xml",
+            "hash_exportacion": "252d60078ed02374bc651bbaa1069a67b3f263029d896eec6b9db3da49cf9190",
+            "fecha_generacion": "2026-02-12T14:22:52.957739",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 5,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_112253.xml",
+            "hash_exportacion": "0842a219a0b36b92f8701612d7cf8ae22f98fe37305fbf7a45f480793adcc5f6",
+            "fecha_generacion": "2026-02-12T14:22:53.507500",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 6,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_112255.xml",
+            "hash_exportacion": "2ea481a2693f34c692ae39d5cf2a4f669bf5205f5fc63ea205fafd4e38add433",
+            "fecha_generacion": "2026-02-12T14:22:55.508132",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 7,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_191857.xml",
+            "hash_exportacion": "bccba87f881fe3716a8c88753221c27dc5a3e77a914543d65185a6d6b7e654f7",
+            "fecha_generacion": "2026-02-12T22:18:57.349055",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 8,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_192949.xml",
+            "hash_exportacion": "1d9ef9d3d1f62ba17fcb9f3f11f280f69b7dbc192bb26f196f9d86cb46cce9d8",
+            "fecha_generacion": "2026-02-12T22:29:49.854949",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 9,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_193025.xml",
+            "hash_exportacion": "f4ecf20dc5819d9a1f0d2de73c2d8563ea78c5539e0dbb4f7effaa754bc1f2c6",
+            "fecha_generacion": "2026-02-12T22:30:25.322052",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 10,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_193027.xml",
+            "hash_exportacion": "97d3c632c8ba6fdcfae64500f7c9d65601a76d63a5c8ff389be8c10c778d6020",
+            "fecha_generacion": "2026-02-12T22:30:27.390255",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 11,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_193027.xml",
+            "hash_exportacion": "d8bc66c68ad703f116cb5b13a6294739d4377fe00952163e678f30ec23853ba1",
+            "fecha_generacion": "2026-02-12T22:30:27.520414",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 12,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_193041.xml",
+            "hash_exportacion": "b9b97d4c5c1bb87211adbe129daa7fc3f8265ae4547147714b06d4d344c6df46",
+            "fecha_generacion": "2026-02-12T22:30:41.945108",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 13,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260212_193042.xml",
+            "hash_exportacion": "6b564674882a8649284285b967180b483b12bf67da20c4fcd9fbfd67598e60ae",
+            "fecha_generacion": "2026-02-12T22:30:42.065103",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 14,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105436.xml",
+            "hash_exportacion": "3d17fbae202597fac7978e816df693ba1136a863691b4e01d644d7c5cb3fee9d",
+            "fecha_generacion": "2026-02-14T13:54:36.888084",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 15,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105440.xml",
+            "hash_exportacion": "c125e98a3961fef7ea916b8d957f90a344e4e760db14b6c034c79b58af9aa9d7",
+            "fecha_generacion": "2026-02-14T13:54:40.766938",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 16,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105447.xml",
+            "hash_exportacion": "96d384718ebc839cd1f921a210912e0b4830ba01b1268e17052f7d40f95e2a09",
+            "fecha_generacion": "2026-02-14T13:54:47.351559",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 17,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105534.xml",
+            "hash_exportacion": "6844ba2edfccbc4bbdd8dc895b9912f3df5cadc3e3eebfe152436f8a6a79e4e8",
+            "fecha_generacion": "2026-02-14T13:55:34.623041",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 18,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105534.xml",
+            "hash_exportacion": "d6a5e06017d6569e88bcdc817cd2e22cd55788c27dde352b2c60071c76762748",
+            "fecha_generacion": "2026-02-14T13:55:34.978520",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 19,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105646.xml",
+            "hash_exportacion": "6c4798c71f005925b78d16063685b1e7e134ea5b7920fa5cd50308845430a943",
+            "fecha_generacion": "2026-02-14T13:56:46.278688",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 20,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105651.xml",
+            "hash_exportacion": "729cd41af22b27c158f91dd54302dad12cdaba15d6c84836d2339fa98f53dfbf",
+            "fecha_generacion": "2026-02-14T13:56:51.016724",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 21,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105724.xml",
+            "hash_exportacion": "3a94710f951062eaefb157e5b76fe4f0a9d87d075c8d21ad3e53ec1b1ba92ac0",
+            "fecha_generacion": "2026-02-14T13:57:24.950907",
+            "generado_por_sistema": "PNA_SYSTEM"
+        },
+        {
+            "exportacion_regulatoria_id": 22,
+            "id_pozo": "M-555",
+            "tipo_regulador": "SEC_ARGENTINA",
+            "formato_generado": "XML",
+            "url_archivo": "storage/exports/dossier_M-555_20260214_105727.xml",
+            "hash_exportacion": "e9afdf927272a10612a5414e558391379d6d2a5c44361cc4ffa017460427da7e",
+            "fecha_generacion": "2026-02-14T13:57:27.649692",
+            "generado_por_sistema": "PNA_SYSTEM"
+        }
+    ]
 }

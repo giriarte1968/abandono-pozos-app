@@ -93,11 +93,18 @@ class EvidenceService:
             for ev in audit_events:
                 if ev['tipo_evento'] == "EVIDENCE_UPLOAD":
                     state = json.loads(ev['estado_nuevo']) if isinstance(ev['estado_nuevo'], str) else ev['estado_nuevo']
+                    if not state: continue
+                    
+                    # Robustez total ante keys faltantes o inconsistentes
+                    f_name = state.get('file_name') or state.get('file') or "archivo_sin_nombre"
+                    step_val = state.get('step') or state.get('etapa') or "N/A"
+                    hash_val = state.get('hash') or state.get('hash_sha256') or "sin-hash"
+                    
                     evidence.append({
-                        "id_pozo": ev['entidad_id'],
-                        "nombre_archivo": state['file_name'],
-                        "hash_sha256": state['hash'],
-                        "etapa_workflow": state['step'],
-                        "timestamp_carga": ev['timestamp_utc']
+                        "id_pozo": ev.get('entidad_id'),
+                        "nombre_archivo": f_name,
+                        "hash_sha256": hash_val,
+                        "etapa_workflow": step_val,
+                        "timestamp_carga": ev.get('timestamp_utc')
                     })
             return evidence

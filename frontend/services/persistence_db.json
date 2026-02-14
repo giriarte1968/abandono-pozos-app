@@ -1,139 +1,203 @@
 {
-    "projects": [
-        {
-            "id": "X-123",
-            "nombre": "Pozo X-123",
-            "yacimiento": "Los Perales",
-            "campana": "Campa\u00f1a Norte 2024",
-            "estado_proyecto": "EN_EJECUCION",
-            "progreso": 45,
-            "proximo_hito": "Cementaci\u00f3n Faja 2",
-            "responsable": "Juan P\u00e9rez",
-            "lat": -46.4328,
-            "lon": -67.5267,
-            "workflow_status": "WAITING_DAILY_REPORT"
-        },
-        {
-            "id": "A-321",
-            "nombre": "Pozo A-321",
-            "yacimiento": "Las Heras",
-            "campana": "Campa\u00f1a Norte 2024",
-            "estado_proyecto": "PLANIFICADO",
-            "progreso": 10,
-            "proximo_hito": "Asignaci\u00f3n de Equipos",
-            "responsable": "Maria Gonzalez",
-            "lat": -46.5428,
-            "lon": -68.9344,
-            "workflow_status": "WAITING_DTM_ASSIGNMENT"
-        },
-        {
-            "id": "Z-789",
-            "nombre": "Pozo Z-789",
-            "yacimiento": "El Tordillo",
-            "campana": "Campa\u00f1a Sur 2024",
-            "estado_proyecto": "BLOQUEADO",
-            "progreso": 60,
-            "proximo_hito": "Resoluci\u00f3n Incidencia HSE",
-            "responsable": "Carlos Ruiz",
-            "lat": -45.8569,
-            "lon": -67.4853,
-            "workflow_status": "BLOCKED_BY_INCIDENT"
-        },
-        {
-            "id": "M-555",
-            "nombre": "Pozo M-555",
-            "yacimiento": "Ca\u00f1ad\u00f3n Seco",
-            "campana": "Campa\u00f1a Sur 2024",
-            "estado_proyecto": "EN_ESPERA_APROBACION",
-            "progreso": 95,
-            "proximo_hito": "Firma Auditor\u00eda Final",
-            "responsable": "Juan P\u00e9rez",
-            "lat": -46.5337,
-            "lon": -67.6172,
-            "workflow_status": "WAITING_FINAL_APPROVAL"
-        }
-    ],
-    "people": [
-        {
-            "name": "Juan P\u00e9rez",
-            "role": "Supervisor",
-            "category": "DIRECTO",
-            "medical_ok": true,
-            "induction_ok": true
-        },
-        {
-            "name": "Maria Gonzalez",
-            "role": "HSE",
-            "category": "DIRECTO",
-            "medical_ok": true,
-            "induction_ok": true
-        },
-        {
-            "name": "Sebastian Cannes",
-            "role": "Gerente",
-            "category": "DIRECTO",
-            "medical_ok": true,
-            "induction_ok": true
-        },
-        {
-            "name": "Roberto Ruiz",
-            "role": "Operario",
-            "category": "INDIRECTO",
-            "medical_ok": true,
-            "induction_ok": false
-        }
-    ],
-    "equipment": [
-        {
-            "name": "Pulling Unit #01",
-            "type": "PULLING",
-            "category": "DIRECTO",
-            "status": "OPERATIVO"
-        },
-        {
-            "name": "Cisterna 25m3 #1",
-            "type": "CISTERNA",
-            "category": "INDIRECTO",
-            "status": "OPERATIVO"
-        },
-        {
-            "name": "Camion de Apoyo",
-            "type": "APERTURA",
-            "category": "INDIRECTO",
-            "status": "DISPONIBLE"
-        }
-    ],
-    "supplies": [
-        {
-            "item": "Cemento (Bolsas)",
-            "unit": "u",
-            "min": 50
-        },
-        {
-            "item": "Agua Industrial",
-            "unit": "m3",
-            "min": 10
-        },
-        {
-            "item": "Gasoil",
-            "unit": "lts",
-            "min": 500
-        }
-    ],
-    "sync_outbox": [],
-    "offline_cache": {},
-    "emergency_inbox": [
-        {
-            "id": "rec_1770831167",
-            "ts": "2026-02-11 14:32",
-            "channel": "SATELITAL",
-            "project_id": "X-123",
-            "raw_code": "ABND:X-123:CEM:0:0",
-            "decoded_data": {
-                "op": "CEMENTACION",
-                "desc": ""
-            },
-            "status": "DECODED"
-        }
-    ]
+  "contratos": [
+    {
+      "ID_CONTRATO": 1,
+      "NOMBRE_CONTRATO": "Contrato SureOil - Lote Norte",
+      "CLIENTE": "SureOil Argentina S.A.",
+      "CANTIDAD_POZOS": 4,
+      "VALOR_UNITARIO_BASE_USD": 185000.0,
+      "MONTO_TOTAL_CONTRACTUAL": 740000.0,
+      "BACKLOG_RESTANTE": 555000.0,
+      "PLAZO_PAGO_DIAS": 30,
+      "FECHA_INICIO": "2025-01-15T00:00:00",
+      "FECHA_FIN": "2026-01-15T00:00:00",
+      "ESTADO": "ACTIVO",
+      "total_certificaciones": 1,
+      "pozos_asignados": [
+        "X-123",
+        "A-321",
+        "Z-789",
+        "M-555"
+      ]
+    },
+    {
+      "ID_CONTRATO": 2,
+      "NOMBRE_CONTRATO": "Contrato YPF - Abandono Integral",
+      "CLIENTE": "YPF S.A.",
+      "CANTIDAD_POZOS": 3,
+      "VALOR_UNITARIO_BASE_USD": 195000.0,
+      "MONTO_TOTAL_CONTRACTUAL": 585000.0,
+      "BACKLOG_RESTANTE": 390000.0,
+      "PLAZO_PAGO_DIAS": 45,
+      "FECHA_INICIO": "2024-12-16T00:00:00",
+      "FECHA_FIN": "2025-12-16T00:00:00",
+      "ESTADO": "ACTIVO",
+      "total_certificaciones": 1,
+      "pozos_asignados": [
+        "P-001",
+        "P-002",
+        "H-101"
+      ]
+    },
+    {
+      "ID_CONTRATO": 3,
+      "NOMBRE_CONTRATO": "Contrato Petrobras - Mantenimiento",
+      "CLIENTE": "Petrobras Argentina S.A.",
+      "CANTIDAD_POZOS": 3,
+      "VALOR_UNITARIO_BASE_USD": 175000.0,
+      "MONTO_TOTAL_CONTRACTUAL": 525000.0,
+      "BACKLOG_RESTANTE": 525000.0,
+      "PLAZO_PAGO_DIAS": 30,
+      "FECHA_INICIO": "2025-01-30T00:00:00",
+      "FECHA_FIN": "2026-01-30T00:00:00",
+      "ESTADO": "ACTIVO",
+      "total_certificaciones": 0,
+      "pozos_asignados": [
+        "H-102",
+        "T-201",
+        "C-301"
+      ]
+    }
+  ],
+  "certificaciones": [
+    {
+      "ID_CERTIFICACION": 1,
+      "ID_CONTRATO": 1,
+      "ID_WELL": "X-123",
+      "WELL_NAME": "Pozo X-123",
+      "FECHA_CERTIFICACION": "2024-12-31T00:00:00",
+      "MONTO_CERTIFICADO": 185000.0,
+      "PORCENTAJE_AVANCE": 100.0,
+      "ESTADO": "FACTURADO",
+      "SINCRONIZADO_OPERACIONES": true
+    },
+    {
+      "ID_CERTIFICACION": 2,
+      "ID_CONTRATO": 2,
+      "ID_WELL": "P-001",
+      "WELL_NAME": "Pozo P-001 (YPF)",
+      "FECHA_CERTIFICACION": "2025-01-05T00:00:00",
+      "MONTO_CERTIFICADO": 195000.0,
+      "PORCENTAJE_AVANCE": 100.0,
+      "ESTADO": "FACTURADO",
+      "SINCRONIZADO_OPERACIONES": true
+    },
+    {
+      "ID_CERTIFICACION": 3,
+      "ID_CONTRATO": 1,
+      "ID_WELL": "A-321",
+      "WELL_NAME": "Pozo A-321",
+      "FECHA_CERTIFICACION": "2025-01-10T00:00:00",
+      "MONTO_CERTIFICADO": 185000.0,
+      "PORCENTAJE_AVANCE": 100.0,
+      "ESTADO": "PENDIENTE_FACTURA",
+      "SINCRONIZADO_OPERACIONES": false
+    }
+  ],
+  "facturas": [
+    {
+      "ID_FACTURA": 1,
+      "ID_CERTIFICACION": 1,
+      "NUMERO_FACTURA": "F-2025-1001",
+      "FECHA_FACTURA": "2024-12-31T00:00:00",
+      "FECHA_VENCIMIENTO": "2025-01-30T00:00:00",
+      "MONTO": 185000.0,
+      "ESTADO": "COBRADA",
+      "CLIENTE": "SureOil Argentina S.A."
+    },
+    {
+      "ID_FACTURA": 2,
+      "ID_CERTIFICACION": 2,
+      "NUMERO_FACTURA": "F-2025-1002",
+      "FECHA_FACTURA": "2025-01-05T00:00:00",
+      "FECHA_VENCIMIENTO": "2025-02-19T00:00:00",
+      "MONTO": 195000.0,
+      "ESTADO": "COBRADA",
+      "CLIENTE": "YPF S.A."
+    },
+    {
+      "ID_FACTURA": 3,
+      "ID_CERTIFICACION": 3,
+      "NUMERO_FACTURA": "F-2025-1003",
+      "FECHA_FACTURA": "2025-01-10T00:00:00",
+      "FECHA_VENCIMIENTO": "2025-02-09T00:00:00",
+      "MONTO": 185000.0,
+      "ESTADO": "PENDIENTE",
+      "CLIENTE": "SureOil Argentina S.A."
+    }
+  ],
+  "cobranzas": [
+    {
+      "ID_COBRANZA": 1,
+      "ID_FACTURA": 1,
+      "FECHA_COBRANZA": "2025-01-10T00:00:00",
+      "MONTO_COBRADO": 185000.0,
+      "MEDIO_PAGO": "TRANSFERENCIA",
+      "ESTADO": "COMPLETADA"
+    },
+    {
+      "ID_COBRANZA": 2,
+      "ID_FACTURA": 2,
+      "FECHA_COBRANZA": "2025-01-13T00:00:00",
+      "MONTO_COBRADO": 195000.0,
+      "MEDIO_PAGO": "CHEQUE",
+      "ESTADO": "COMPLETADA"
+    }
+  ],
+  "costos_reales": [
+    {
+      "ID_COSTO": 1,
+      "ID_WELL": "X-123",
+      "ETAPA": "PREPARACION",
+      "CONCEPTO": "Mano de obra especializada",
+      "MONTO_USD": 45000.0,
+      "FECHA": "2024-12-16T00:00:00",
+      "ORIGEN": "OPERACIONES"
+    },
+    {
+      "ID_COSTO": 2,
+      "ID_WELL": "X-123",
+      "ETAPA": "EJECUCION",
+      "CONCEPTO": "Equipo de perforaci\u00f3n",
+      "MONTO_USD": 85000.0,
+      "FECHA": "2024-12-26T00:00:00",
+      "ORIGEN": "OPERACIONES"
+    },
+    {
+      "ID_COSTO": 3,
+      "ID_WELL": "P-001",
+      "ETAPA": "PREPARACION",
+      "CONCEPTO": "Transporte y log\u00edstica",
+      "MONTO_USD": 32000.0,
+      "FECHA": "2024-12-21T00:00:00",
+      "ORIGEN": "OPERACIONES"
+    },
+    {
+      "ID_COSTO": 4,
+      "ID_WELL": "P-001",
+      "ETAPA": "EJECUCION",
+      "CONCEPTO": "Cemento y materiales",
+      "MONTO_USD": 78000.0,
+      "FECHA": "2024-12-31T00:00:00",
+      "ORIGEN": "OPERACIONES"
+    }
+  ],
+  "parametros_macro": {
+    "COTIZACION_DOLAR": {
+      "valor": 1050.0,
+      "unidad": "ARS/USD",
+      "fecha": "2025-01-15T00:00:00"
+    },
+    "INFLACION_ANUAL": {
+      "valor": 25.5,
+      "unidad": "%",
+      "fecha": "2025-01-15T00:00:00"
+    },
+    "TASA_INTERES": {
+      "valor": 45.0,
+      "unidad": "%",
+      "fecha": "2025-01-15T00:00:00"
+    }
+  },
+  "last_updated": "2026-02-14T17:15:10.275942"
 }

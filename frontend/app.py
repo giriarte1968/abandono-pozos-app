@@ -1,4 +1,8 @@
 import streamlit as st
+from dotenv import load_dotenv
+
+# Cargar variables de entorno antes de cualquier otra cosa
+load_dotenv()
 from components.sidebar import render_sidebar
 from views import login, dashboard, project_list, execution_detail
 from services.mock_api_client import MockApiClient
@@ -66,7 +70,8 @@ def main_router():
         logistics.render_view()
         
     elif page == 'Documentación':
-        st.title("🚧 Gestión Documental (Próximamente)")
+        from views import documentation_view
+        documentation_view.render_view()
     
     elif page == 'Datos Maestros':
         from views import admin_master_data
@@ -87,13 +92,32 @@ def main_router():
     elif page == 'Cierre Técnico':
         from views import closure_view
         closure_view.render_view()
+
+    elif page == 'Dashboard Financiero':
+        from views import financial_dashboard
+        financial_dashboard.render_financial_dashboard()
+
+    elif page == 'Contratos':
+        from views import financial_contracts
+        financial_contracts.render_contracts_view()
+
+    elif page == 'Certificaciones':
+        from views import financial_certifications
+        financial_certifications.render_certifications_view()
+
+    elif page == 'Datos Maestros Financieros':
+        from views import admin_financial_master_data
+        admin_financial_master_data.render_view()
         
     else:
         st.warning(f"Página no encontrada: {page}")
 
-    # 4. Renderizar Chat Flotante Global (Siempre al final)
-    from components.chat import render_chat
-    render_chat()
+    # 4. Renderizar Chat Flotante Global
+    # Lo renderizamos dentro del Sidebar para evitar que ocupe espacio en el layout principal
+    # al cargar, evitando el "salto" visual. CSS fixed lo posicionará en la pantalla.
+    with st.sidebar:
+        from components.chat import render_chat
+        render_chat()
 
 if __name__ == "__main__":
     init_session_state()

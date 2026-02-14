@@ -1,5 +1,6 @@
 import pymysql
 import os
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,8 +31,9 @@ class DatabaseService:
         except Exception:
             return None
 
-    def is_available(self):
-        conn = self._get_connection()
+    @st.cache_data(ttl=10, show_spinner=False) # Validar disponibilidad cada 10 seg
+    def is_available(_self):
+        conn = _self._get_connection()
         if conn:
             conn.close()
             return True
