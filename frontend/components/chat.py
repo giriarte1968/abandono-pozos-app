@@ -183,14 +183,10 @@ def render_chat():
         print(f"[CHAT] No se pudo cargar icono: {e}")
         img_b64 = ""
 
-    fab_container = st.container()
-    with fab_container:
-        # Usar key única basada en timestamp para evitar duplicados
-        import time
-        unique_key = f"fab_main_btn_{int(time.time() * 1000) % 10000}"
-        if st.button("🤖", key=unique_key, help="Abrir/Cerrar Asistente"):
-            st.session_state['chat_is_open'] = not st.session_state['chat_is_open']
-            st.rerun()
+    # Botón flotante simple y funcional
+    if st.button("🤖", key="chat_fab_button", help="Abrir/Cerrar Asistente"):
+        st.session_state['chat_is_open'] = not st.session_state['chat_is_open']
+        st.rerun()
 
     # CSS para posicionar el botón flotante
     if icon_loaded and img_b64:
@@ -226,4 +222,4 @@ def render_chat():
             font-size: 35px; cursor: pointer; transition: transform 0.2s;
         """
     
-    fab_container.float(fab_css)
+    # No usar float container que causa problemas, solo el botón simple

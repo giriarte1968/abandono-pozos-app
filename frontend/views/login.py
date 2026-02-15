@@ -97,6 +97,32 @@ def set_png_as_page_bg(png_file):
             text-align: center !important;
             font-family: 'Helvetica', sans-serif !important;
         }}
+        
+        /* REDUCIR TAMAÑOS DE FUENTE GLOBALES 20% */
+        html {{
+            font-size: 80% !important;
+        }}
+        .stApp {{
+            font-size: 0.9rem !important;
+        }}
+        h1 {{
+            font-size: 1.8rem !important;
+        }}
+        h2 {{
+            font-size: 1.5rem !important;
+        }}
+        h3 {{
+            font-size: 1.2rem !important;
+        }}
+        p, div, span, label {{
+            font-size: 0.9rem !important;
+        }}
+        button {{
+            font-size: 0.85rem !important;
+        }}
+        input {{
+            font-size: 0.9rem !important;
+        }}
         </style>
         '''
         st.markdown(page_bg_img, unsafe_allow_html=True)

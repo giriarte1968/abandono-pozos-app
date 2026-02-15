@@ -167,10 +167,13 @@ def render_view(project_id):
             lon = project.get('lon', -68.0)
             well_id = project.get('well', project.get('id', 'N/A'))
             
-            m = folium.Map(location=[lat, lon], zoom_start=12, tiles='OpenStreetMap')
-            folium.Marker([lat, lon], tooltip=well_id, icon=folium.Icon(color='red')).add_to(m)
-            
-            st_folium(m, use_container_width=True, height=280, returned_objects=[])
+            # Intentar mostrar mapa, si falla mostrar solo coordenadas
+            try:
+                m = folium.Map(location=[lat, lon], zoom_start=12, tiles='OpenStreetMap')
+                folium.Marker([lat, lon], tooltip=well_id, icon=folium.Icon(color='red')).add_to(m)
+                st_folium(m, use_container_width=True, height=280, returned_objects=[])
+            except Exception as e:
+                st.info(f"📍 Ubicación: {well_id}")
             st.caption(f"Lat: {lat}, Lon: {lon}")
     
     # --- Disclaimer Obligatorio (Legal) ---
