@@ -185,7 +185,10 @@ def render_chat():
 
     fab_container = st.container()
     with fab_container:
-        if st.button("🤖", key="fab_main_btn", help="Abrir/Cerrar Asistente"):
+        # Usar key única basada en timestamp para evitar duplicados
+        import time
+        unique_key = f"fab_main_btn_{int(time.time() * 1000) % 10000}"
+        if st.button("🤖", key=unique_key, help="Abrir/Cerrar Asistente"):
             st.session_state['chat_is_open'] = not st.session_state['chat_is_open']
             st.rerun()
 

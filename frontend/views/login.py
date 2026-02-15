@@ -29,28 +29,48 @@ def set_png_as_page_bg(png_file):
         [data-testid="stAppViewContainer"] > .main {{
             background-color: transparent;
         }}
-        /* Contenedor de Login: Glassmorphism más sólido (0.55) */
+        /* Contenedor de Login: Glassmorphism MEJORADO - más brillo */
         [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {{
-            background-color: rgba(0, 0, 0, 0.55) !important;
-            padding: 30px 40px !important;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(20, 20, 40, 0.8) 100%) !important;
+            padding: 35px 45px !important;
             border-radius: 20px !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border: 2px solid rgba(255, 255, 255, 0.4) !important;
             max-width: 340px !important;
             margin: auto !important;
-            backdrop-filter: blur(15px) !important;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 0 20px rgba(102, 126, 234, 0.3) !important;
         }}
         
-        /* HACER CAMPOS DE INPUT UN POCO MÁS SÓLIDOS (0.15) */
+        /* INPUTS MEJORADOS - más visibles */
         div[data-baseweb="input"], div[data-baseweb="select"], .stSelectbox div, .stTextInput div {{
-            background-color: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
+            background-color: rgba(255, 255, 255, 0.25) !important;
+            border: 2px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 12px !important;
             color: white !important;
+            transition: all 0.3s ease !important;
         }}
         
-        /* Asegurar que el texto sea blanco en los inputs */
+        div[data-baseweb="input"]:hover, div[data-baseweb="select"]:hover {{
+            background-color: rgba(255, 255, 255, 0.35) !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.4) !important;
+        }}
+        
+        /* Texto en inputs con sombra para mejor legibilidad */
         input {{
             color: white !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+            font-weight: 500 !important;
+        }}
+        
+        /* Placeholders más visibles */
+        input::placeholder {{
+            color: rgba(255, 255, 255, 0.8) !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+            font-weight: 400 !important;
         }}
         
         /* Botón primario estilizado */
