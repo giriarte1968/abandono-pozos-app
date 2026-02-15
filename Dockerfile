@@ -16,10 +16,14 @@ ENV STREAMLIT_SERVER_HEADLESS=true
 # Directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema
+# Instalar dependencias del sistema (incluyendo librerías para mysqlclient)
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    pkg-config \
+    default-libmysqlclient-dev \
+    gcc \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements primero (optimización de cache)
