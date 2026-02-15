@@ -183,8 +183,12 @@ def render_chat():
         print(f"[CHAT] No se pudo cargar icono: {e}")
         img_b64 = ""
 
-    # Botón flotante simple y funcional
-    if st.button("🤖", key="chat_fab_button", help="Abrir/Cerrar Asistente"):
+    # Botón flotante - key única por sesión para evitar duplicados
+    if 'chat_button_key' not in st.session_state:
+        import random
+        st.session_state['chat_button_key'] = f"chat_fab_{random.randint(1000, 9999)}"
+    
+    if st.button("🤖", key=st.session_state['chat_button_key'], help="Abrir/Cerrar Asistente"):
         st.session_state['chat_is_open'] = not st.session_state['chat_is_open']
         st.rerun()
 
