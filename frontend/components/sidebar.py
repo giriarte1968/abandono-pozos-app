@@ -1,16 +1,16 @@
 """
-Sidebar Component - Versión con Option Menu
-Más estable que antd, mejor UX que botones nativos
+Sidebar Component - Versión con Expanders (Acordeones)
+Menú organizado por categorías, expanders cerrados por defecto
 """
 
 import streamlit as st
-from streamlit_option_menu import option_menu
 import time
 from .chat import render_chat
 
 def render_sidebar():
     """
-    Renderiza la barra lateral con option_menu (estable y profesional).
+    Renderiza la barra lateral con menú organizado en expanders.
+    Cada sección (Operaciones, Finanzas, etc.) es un expander cerrado por defecto.
     """
     role = st.session_state.get('user_role')
     api = st.session_state.get('api_client')
@@ -32,77 +32,93 @@ def render_sidebar():
 
         st.divider()
         
-        # Preparar menús según rol
-        menu_options = []
-        menu_icons = []
-        
-        # Dashboard siempre
-        menu_options.append("Dashboard")
-        menu_icons.append("bar-chart")
-        
-        # Operaciones
-        if role in ['Gerente', 'Administrativo', 'Ingeniero Campo']:
-            menu_options.extend(["Proyectos", "Logística", "Cementación", "Cierre Técnico"])
-            menu_icons.extend(["clipboard-data", "truck", "moisture", "flag"])
-        
-        # Finanzas
-        if role in ['Administrativo', 'Gerente', 'Finanzas']:
-            menu_options.extend(["Dashboard Financiero", "Contratos", "Certificaciones"])
-            menu_icons.extend(["graph-up", "file-earmark-text", "clipboard-check"])
-        
-        # Control & Calidad
-        if role in ['Gerente', 'Supervisor', 'Administrativo']:
-            menu_options.extend(["Cumplimiento", "Auditoría", "Documentación"])
-            menu_icons.extend(["file-earmark-check", "shield-lock", "folder"])
-        
-        # Administración
-        if role in ['Administrativo', 'Gerente']:
-            menu_options.extend(["Datos Maestros", "Datos Maestros Financieros"])
-            menu_icons.extend(["database", "cash-coin"])
-        
-        # Encontrar índice de página actual
-        try:
-            default_index = menu_options.index(current_page)
-        except ValueError:
-            default_index = 0
-        
-        # Renderizar menú con option_menu
-        selected = option_menu(
-            menu_title=None,  # Sin título para look limpio
-            options=menu_options,
-            icons=menu_icons,
-            menu_icon="cast",  # Icono opcional del menú
-            default_index=default_index,
-            orientation="vertical",
-            styles={
-                "container": {"padding": "0!important", "background-color": "transparent"},
-                "icon": {"color": "#667eea", "font-size": "18px"}, 
-                "nav-link": {
-                    "font-size": "16px", 
-                    "text-align": "left", 
-                    "margin": "0px",
-                    "--hover-color": "#f0f2f6",
-                    "border-radius": "10px",
-                    "padding": "12px 15px",
-                },
-                "nav-link-selected": {
-                    "background-color": "#667eea", 
-                    "color": "white",
-                    "font-weight": "600",
-                    "border-radius": "10px",
-                    "box-shadow": "0 2px 8px rgba(102, 126, 234, 0.4)",
-                },
-            }
-        )
-        
-        # Navegar si cambió
-        if selected != current_page:
-            st.session_state['current_page'] = selected
+        # ==========================================
+        # DASHBOARD - Siempre visible (fuera de expanders)
+        # ==========================================
+        if st.button("📊 Dashboard", use_container_width=True,
+                    type="primary" if current_page == 'Dashboard' else "secondary"):
+            st.session_state['current_page'] = 'Dashboard'
             st.rerun()
-
+        
         st.divider()
         
-        # --- CONECTIVIDAD ---
+        # ==========================================
+        # OPERACIONES
+        # ==========================================
+        if role in ['Gerente', 'Administrativo', 'Ingeniero Campo']:
+            with st.expander("⚙️ Operaciones", expanded=False):
+                if st.button("📋 Proyectos", use_container_width=True,
+                            type="primary" if current_page == 'Proyectos' else "secondary"):
+                    st.session_state['current_page'] = 'Proyectos'
+                    st.rerun()
+                if st.button("🚚 Logística", use_container_width=True,
+                            type="primary" if current_page == 'Logística' else "secondary"):
+                    st.session_state['current_page'] = 'Logística'
+                    st.rerun()
+                if st.button("🏗️ Cementación", use_container_width=True,
+                            type="primary" if current_page == 'Cementación' else "secondary"):
+                    st.session_state['current_page'] = 'Cementación'
+                    st.rerun()
+                if st.button("🏁 Cierre Técnico", use_container_width=True,
+                            type="primary" if current_page == 'Cierre Técnico' else "secondary"):
+                    st.session_state['current_page'] = 'Cierre Técnico'
+                    st.rerun()
+        
+        # ==========================================
+        # FINANZAS
+        # ==========================================
+        if role in ['Administrativo', 'Gerente', 'Finanzas']:
+            with st.expander("💰 Finanzas", expanded=False):
+                if st.button("📈 Dashboard Financiero", use_container_width=True,
+                            type="primary" if current_page == 'Dashboard Financiero' else "secondary"):
+                    st.session_state['current_page'] = 'Dashboard Financiero'
+                    st.rerun()
+                if st.button("📑 Contratos", use_container_width=True,
+                            type="primary" if current_page == 'Contratos' else "secondary"):
+                    st.session_state['current_page'] = 'Contratos'
+                    st.rerun()
+                if st.button("📋 Certificaciones", use_container_width=True,
+                            type="primary" if current_page == 'Certificaciones' else "secondary"):
+                    st.session_state['current_page'] = 'Certificaciones'
+                    st.rerun()
+        
+        # ==========================================
+        # CONTROL & CALIDAD
+        # ==========================================
+        if role in ['Gerente', 'Supervisor', 'Administrativo']:
+            with st.expander("✅ Control & Calidad", expanded=False):
+                if st.button("📋 Cumplimiento", use_container_width=True,
+                            type="primary" if current_page == 'Cumplimiento' else "secondary"):
+                    st.session_state['current_page'] = 'Cumplimiento'
+                    st.rerun()
+                if st.button("🔒 Auditoría", use_container_width=True,
+                            type="primary" if current_page == 'Auditoría' else "secondary"):
+                    st.session_state['current_page'] = 'Auditoría'
+                    st.rerun()
+                if st.button("📁 Documentación", use_container_width=True,
+                            type="primary" if current_page == 'Documentación' else "secondary"):
+                    st.session_state['current_page'] = 'Documentación'
+                    st.rerun()
+        
+        # ==========================================
+        # ADMINISTRACIÓN
+        # ==========================================
+        if role in ['Administrativo', 'Gerente']:
+            with st.expander("⚙️ Administración", expanded=False):
+                if st.button("🗄️ Datos Maestros", use_container_width=True,
+                            type="primary" if current_page == 'Datos Maestros' else "secondary"):
+                    st.session_state['current_page'] = 'Datos Maestros'
+                    st.rerun()
+                if st.button("💵 Datos Maestros Financieros", use_container_width=True,
+                            type="primary" if current_page == 'Datos Maestros Financieros' else "secondary"):
+                    st.session_state['current_page'] = 'Datos Maestros Financieros'
+                    st.rerun()
+        
+        st.divider()
+        
+        # ==========================================
+        # CONECTIVIDAD
+        # ==========================================
         st.markdown("###### 🌐 CONECTIVIDAD")
         if api:
             try:
@@ -130,12 +146,16 @@ def render_sidebar():
 
         st.divider()
         
-        # --- CHAT ---
+        # ==========================================
+        # CHAT
+        # ==========================================
         render_chat()
 
         st.divider()
         
-        # Logout
+        # ==========================================
+        # LOGOUT
+        # ==========================================
         if st.button("🚪 Cerrar Sesión", use_container_width=True):
             st.session_state['user_role'] = None
             st.session_state['current_page'] = 'Login'
