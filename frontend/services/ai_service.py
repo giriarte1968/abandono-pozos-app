@@ -10,48 +10,56 @@ class AIService:
 
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
-        if self.api_key:
-            print(f"[AI SERVICE] API Key encontrada (termina en ...{self.api_key[-4:]})")
-        else:
-            print("[AI SERVICE] ⚠️ No se encontró GEMINI_API_KEY en variables de entorno")
-        
         self.model = None
+        self._initialized = False
         
         if self.api_key:
-            try:
-                genai.configure(api_key=self.api_key)
+            print(f"[AI SERVICE] API Key encontrada (modo lazy activado)")
+        else:
+            print("[AI SERVICE] ⚠️ No API Key - modo offline")
+    
+    def _lazy_init(self):
+        """Inicialización perezosa - solo cuando se necesita"""
+        if self._initialized or not self.api_key:
+            return
+        
+        try:
+            genai.configure(api_key=self.api_key)
+            
+            # Lista de modelos preferidos
+            preferred_models = [
+                "models/gemini-1.5-flash",
+                "models/gemini-1.5-flash-latest", 
+                "models/gemini-2.0-flash",
+                "models/gemini-pro"
+            ]
+            
+            # Intentar usar el primer modelo disponible sin listar todos
+            for model_name in preferred_models:
+                try:
+                    self.model = genai.GenerativeModel(model_name)
+                    print(f"[AI SERVICE] Usando: {model_name}")
+                    break
+                except:
+                    continue
+            
+            if not self.model:
+                print("[AI SERVICE] ❌ No se pudo inicializar ningún modelo")
                 
-                # Descubrimiento Automático de Modelos
-                # Listamos los modelos disponibles para evitar errores 404
-                available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-                print(f"[AI SERVICE] Modelos Disponibles: {available_models}")
-                
-                # Selección de Prioridad: Flash > Pro > Cualquiera
-                target_model = "models/gemini-1.5-flash"
-                
-                if target_model not in available_models:
-                     # Intentar variantes
-                     variants = ["models/gemini-1.5-flash-latest", "models/gemini-1.5-flash-001", "models/gemini-pro"]
-                     target_model = next((m for m in variants if m in available_models), None)
-                     
-                     if not target_model and available_models:
-                         target_model = available_models[0] # Fallback al primero disponible
-                
-                if target_model:
-                    print(f"[AI SERVICE] Usando Modelo: {target_model}")
-                    self.model = genai.GenerativeModel(target_model)
-                else:
-                    print("[AI SERVICE] ❌ No se encontró ningún modelo compatible con generateContent")
-            except Exception as e:
-                print(f"[AI SERVICE] Error configurando Gemini: {e}")
+        except Exception as e:
+            print(f"[AI SERVICE] Error: {e}")
+        
+        self._initialized = True
 
     def is_available(self):
+        self._lazy_init()
         return self.model is not None
 
     def generate_response(self, user_query, project_context=None, user_role="Usuario", chat_history=None):
         """
         Genera una respuesta natural basada en la consulta del usuario y el contexto operativo.
         """
+        self._lazy_init()
         if not self.model:
             return "Error: Servicio de IA no disponible (Falta API Key)."
 
