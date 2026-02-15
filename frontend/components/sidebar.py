@@ -21,6 +21,9 @@ def render_sidebar():
     api = st.session_state.get('api_client')
     current_page = st.session_state.get('current_page', 'Dashboard')
     
+    # Intentar usar antd, pero si falla usar fallback
+    use_antd = ANTD_AVAILABLE
+    
     with st.sidebar:
         # 1. Header con perfil
         st.markdown(f"""
@@ -43,23 +46,29 @@ def render_sidebar():
             try:
                 is_online = api.is_online()
                 
-                if ANTD_AVAILABLE:
-                    # Usar componente antd si está disponible
-                    new_conn = sac.switch(label='Modo Online', value=is_online, align='center', size='sm')
-                    if new_conn != is_online:
-                        api.set_connectivity(new_conn)
-                        st.rerun()
-                    
-                    sync_count = api.get_sync_count()
-                    if sync_count > 0:
-                        sac.alert(label=f"{sync_count} pendientes", description="Sincronizar datos", color='warning', icon='cloud-upload')
-                        if st.button("🔄 Sincronizar Ahora", use_container_width=True, type="primary"):
-                            with st.spinner("Sincronizando..."):
-                                success, msg = api.synchronize()
-                                if success: st.success(msg)
-                                else: st.error(msg)
-                                st.rerun()
-                else:
+                if use_antd:
+                    try:
+                        # Intentar usar componente antd
+                        new_conn = sac.switch(label='Modo Online', value=is_online, align='center', size='sm')
+                        if new_conn != is_online:
+                            api.set_connectivity(new_conn)
+                            st.rerun()
+                        
+                        sync_count = api.get_sync_count()
+                        if sync_count > 0:
+                            sac.alert(label=f"{sync_count} pendientes", description="Sincronizar datos", color='warning', icon='cloud-upload')
+                            if st.button("🔄 Sincronizar Ahora", use_container_width=True, type="primary"):
+                                with st.spinner("Sincronizando..."):
+                                    success, msg = api.synchronize()
+                                    if success: st.success(msg)
+                                    else: st.error(msg)
+                                    st.rerun()
+                    except Exception as antd_error:
+                        # Si antd falla, desactivarlo y usar fallback
+                        use_antd = False
+                        st.warning("Modo compatibilidad activado")
+                        
+                if not use_antd:
                     # Fallback nativo
                     new_conn = st.toggle("Modo Online", value=is_online)
                     if new_conn != is_online:
@@ -84,9 +93,14 @@ def render_sidebar():
         # 3. Menú de Navegación
         st.markdown("###### 📍 NAVEGACIÓN")
         
-        if ANTD_AVAILABLE:
-            # Versión con componentes antd
-            render_menu_antd(role, current_page)
+        if use_antd:
+            try:
+                # Intentar versión con componentes antd
+                render_menu_antd(role, current_page)
+            except Exception as menu_error:
+                # Si falla, usar fallback
+                use_antd = False
+                render_menu_native(role, current_page)
         else:
             # Versión fallback con botones nativos
             render_menu_native(role, current_page)
