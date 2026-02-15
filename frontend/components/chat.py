@@ -160,43 +160,34 @@ def render_chat():
         """
         chat_container.float(chat_window_css)
 
-    # 2. Botón Flotante (FAB) - Versión robusta con fallback a emoji
-    img_b64 = ""
-    icon_loaded = False
-    
+    # 2. Botón Flotante (FAB)
     try:
-        # Intentar múltiples rutas posibles (local y Docker)
-        possible_paths = [
-            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "chatbot_icon.png"),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "chatbot_icon.png"),
-            "/app/frontend/assets/chatbot_icon.png",  # Ruta Docker
-            "frontend/assets/chatbot_icon.png",  # Ruta relativa
-        ]
-        
-        for icon_path in possible_paths:
-            if os.path.exists(icon_path):
-                with open(icon_path, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode()
-                    icon_loaded = True
-                    break
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        assets_dir = os.path.join(os.path.dirname(current_dir), "assets")
+        icon_path = os.path.join(assets_dir, "CHATBOT_ICON.PNG")
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(current_dir, "assets", "CHATBOT_ICON.PNG")
+        img_b64 = ""
+        if os.path.exists(icon_path):
+            with open(icon_path, "rb") as f:
+                img_b64 = base64.b64encode(f.read()).decode()
     except Exception as e:
-        print(f"[CHAT] No se pudo cargar icono: {e}")
         img_b64 = ""
 
     fab_container = st.container()
     with fab_container:
-        if st.button("🤖", key="fab_main_btn", help="Abrir/Cerrar Asistente"):
+        if st.button("CHAT_TRIGGER", key="fab_main_btn", help="Abrir/Cerrar Asistente"):
             st.session_state['chat_is_open'] = not st.session_state['chat_is_open']
             st.rerun()
 
-    # CSS para posicionar el botón flotante
-    if icon_loaded and img_b64:
-        # Usar imagen como icono
+    fab_css = """
+        position: fixed; bottom: 30px; right: 30px;
+        width: 70px; height: 70px; z-index: 100001; opacity: 0;
+    """
+    fab_container.float(fab_css)
+
+    if img_b64:
         icon_url = f"data:image/png;base64,{img_b64}"
-        fab_css = """
-            position: fixed; bottom: 30px; right: 30px;
-            width: 70px; height: 70px; z-index: 100001; opacity: 0;
-        """
         st.markdown(f"""
             <style>
             .chat-fab-overlay {{
@@ -211,16 +202,3 @@ def render_chat():
             </style>
             <div class="chat-fab-overlay" onclick="document.querySelector('button[kind=secondary]').click();"></div>
         """, unsafe_allow_html=True)
-    else:
-        # Fallback: usar emoji 🤖 como icono visible
-        fab_css = """
-            position: fixed; bottom: 30px; right: 30px;
-            width: 70px; height: 70px; z-index: 100001;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%; border: 3px solid white;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 35px; cursor: pointer; transition: transform 0.2s;
-        """
-    
-    fab_container.float(fab_css)
