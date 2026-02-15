@@ -1,11 +1,16 @@
+"""
+Sidebar Component - Versión con Option Menu
+Más estable que antd, mejor UX que botones nativos
+"""
+
 import streamlit as st
-import streamlit_antd_components as sac
+from streamlit_option_menu import option_menu
 import time
 from .chat import render_chat
 
 def render_sidebar():
     """
-    Renderiza la barra lateral de navegación usando componentes modernos.
+    Renderiza la barra lateral con option_menu (estable y profesional).
     """
     role = st.session_state.get('user_role')
     api = st.session_state.get('api_client')
@@ -15,96 +20,116 @@ def render_sidebar():
         # Header con perfil
         st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 20px;">
-            <div style="background: #007bff; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-weight: bold;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50%; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem;">
                 {role[0] if role else 'U'}
             </div>
             <div>
-                <div style="font-weight: 600; font-size: 0.9rem;">{role}</div>
+                <div style="font-weight: 600; font-size: 0.95rem;">{role}</div>
                 <div style="font-size: 0.75rem; color: #888;">Online</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Definir items del menú según rol
-        menu_items = [
-            sac.MenuItem('Dashboard', icon='bar-chart-fill'),
-        ]
-
+        st.divider()
+        
+        # Preparar menús según rol
+        menu_options = []
+        menu_icons = []
+        
+        # Dashboard siempre
+        menu_options.append("Dashboard")
+        menu_icons.append("bar-chart")
+        
         # Operaciones
         if role in ['Gerente', 'Administrativo', 'Ingeniero Campo']:
-            op_children = [
-                sac.MenuItem('Proyectos', icon='clipboard-data'),
-                sac.MenuItem('Logística', icon='truck'),
-                sac.MenuItem('Cementación', icon='moisture'),
-                sac.MenuItem('Cierre Técnico', icon='flag-fill'),
-            ]
-            menu_items.append(sac.MenuItem('Operaciones', icon='tools', children=op_children))
-
+            menu_options.extend(["Proyectos", "Logística", "Cementación", "Cierre Técnico"])
+            menu_icons.extend(["clipboard-data", "truck", "moisture", "flag"])
+        
+        # Finanzas
+        if role in ['Administrativo', 'Gerente', 'Finanzas']:
+            menu_options.extend(["Dashboard Financiero", "Contratos", "Certificaciones"])
+            menu_icons.extend(["graph-up", "file-earmark-text", "clipboard-check"])
+        
         # Control & Calidad
         if role in ['Gerente', 'Supervisor', 'Administrativo']:
-            qa_children = [
-                sac.MenuItem('Cumplimiento', icon='file-earmark-check'),
-                sac.MenuItem('Auditoría', icon='shield-lock-fill'),
-                sac.MenuItem('Documentación', icon='folder-fill'),
-            ]
-            menu_items.append(sac.MenuItem('Control & Calidad', icon='check-circle-fill', children=qa_children))
-
+            menu_options.extend(["Cumplimiento", "Auditoría", "Documentación"])
+            menu_icons.extend(["file-earmark-check", "shield-lock", "folder"])
+        
         # Administración
         if role in ['Administrativo', 'Gerente']:
-            admin_children = [
-                sac.MenuItem('Datos Maestros', icon='database-fill'),
-                sac.MenuItem('Datos Maestros Financieros', icon='cash-coin'),
-            ]
-            menu_items.append(sac.MenuItem('Administración', icon='gear-fill', children=admin_children))
-
-        # Finanzas - NUEVO
-        if role in ['Administrativo', 'Gerente', 'Finanzas']:
-            fin_children = [
-                sac.MenuItem('Dashboard Financiero', icon='graph-up'),
-                sac.MenuItem('Contratos', icon='file-earmark-text'),
-                sac.MenuItem('Certificaciones', icon='clipboard-check'),
-            ]
-            menu_items.append(sac.MenuItem('Finanzas', icon='cash-stack', children=fin_children))
-
-        # Renderizar Menú
-        selected_item = sac.menu(
-            items=menu_items,
-            index=0,
-            format_func='title',
-            size='sm',
-            indent=20,
-            open_index=[1, 2],
+            menu_options.extend(["Datos Maestros", "Datos Maestros Financieros"])
+            menu_icons.extend(["database", "cash-coin"])
+        
+        # Encontrar índice de página actual
+        try:
+            default_index = menu_options.index(current_page)
+        except ValueError:
+            default_index = 0
+        
+        # Renderizar menú con option_menu
+        selected = option_menu(
+            menu_title=None,  # Sin título para look limpio
+            options=menu_options,
+            icons=menu_icons,
+            menu_icon="cast",  # Icono opcional del menú
+            default_index=default_index,
+            orientation="vertical",
+            styles={
+                "container": {"padding": "0!important", "background-color": "transparent"},
+                "icon": {"color": "#667eea", "font-size": "18px"}, 
+                "nav-link": {
+                    "font-size": "16px", 
+                    "text-align": "left", 
+                    "margin": "0px",
+                    "--hover-color": "#f0f2f6",
+                    "border-radius": "10px",
+                    "padding": "12px 15px",
+                },
+                "nav-link-selected": {
+                    "background-color": "#667eea", 
+                    "color": "white",
+                    "font-weight": "600",
+                    "border-radius": "10px",
+                    "box-shadow": "0 2px 8px rgba(102, 126, 234, 0.4)",
+                },
+            }
         )
-
-        # Sincronizar selección del menú con session_state
-        if selected_item and selected_item != current_page:
-            if selected_item not in ['Operaciones', 'Control & Calidad', 'Administración', 'Finanzas']:
-                st.session_state['current_page'] = selected_item
-                st.rerun()
+        
+        # Navegar si cambió
+        if selected != current_page:
+            st.session_state['current_page'] = selected
+            st.rerun()
 
         st.divider()
         
-        # --- CONECTIVIDAD OFFLINE ---
-        st.subheader("🌐 Conectividad")
-        is_online = api.is_online()
-        new_conn = sac.switch(label='Modo Online', value=is_online, align='center', size='sm')
-        if new_conn != is_online:
-            api.set_connectivity(new_conn)
-            st.rerun()
-            
-        sync_count = api.get_sync_count()
-        if sync_count > 0:
-            sac.alert(label=f"{sync_count} pendientes", description="Datos por sincronizar", color='warning', icon='cloud-upload')
-            if st.button("🔄 Sincronizar Ahora", use_container_width=True, type="primary"):
-                with st.spinner("Sincronizando..."):
-                    success, msg = api.synchronize()
-                    if success: st.success(msg)
-                    else: st.error(msg)
-                    time.sleep(1)
+        # --- CONECTIVIDAD ---
+        st.markdown("###### 🌐 CONECTIVIDAD")
+        if api:
+            try:
+                is_online = api.is_online()
+                new_conn = st.toggle("Modo Online", value=is_online)
+                if new_conn != is_online:
+                    api.set_connectivity(new_conn)
                     st.rerun()
-        else:
-            sac.tag(label='Sincronizado', color='success', icon='check-circle')
+                
+                sync_count = api.get_sync_count()
+                if sync_count > 0:
+                    st.warning(f"🔄 {sync_count} cambios pendientes")
+                    if st.button("Sincronizar", use_container_width=True, type="primary"):
+                        with st.spinner("Sincronizando..."):
+                            success, msg = api.synchronize()
+                            if success: st.success(msg)
+                            else: st.error(msg)
+                            time.sleep(1)
+                            st.rerun()
+                else:
+                    st.success("✅ Sincronizado")
+                    
+            except Exception as e:
+                st.error(f"Error: {e}")
 
+        st.divider()
+        
         # --- CHAT ---
         render_chat()
 
