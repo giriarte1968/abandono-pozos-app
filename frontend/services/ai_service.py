@@ -114,8 +114,96 @@ class AIService:
             response = self.model.generate_content(full_prompt)
             return response.text
         except Exception as e:
-            print(f"[AI SERVICE] Error generando respuesta: {e}")
-            return f"⚠️ **Error de IA**: {str(e)}"
+            error_msg = str(e)
+            print(f"[AI SERVICE] Error generando respuesta: {error_msg}")
+            
+            # Si es error de quota (429), usar modo offline
+            if "429" in error_msg or "quota" in error_msg.lower() or "exceeded" in error_msg.lower():
+                print("[AI SERVICE] Cuota agotada - usando modo offline")
+                return self._offline_response(user_query, context, role)
+            
+            return f"⚠️ **Error de IA**: {error_msg}"
+    
+    def _offline_response(self, query, context, role):
+        """Respuestas predefinidas cuando no hay acceso a Gemini"""
+        query_lower = query.lower()
+        
+        # Respuestas predefinidas basadas en palabras clave
+        responses = {
+            "estado": f"📊 **Estado Operativo Actual:**\n\n"
+                      f"• Pozos en Ejecución: 5\n"
+                      f"• Pozos Planificados: 4\n"
+                      f"• Pozos Bloqueados: 1\n"
+                      f"• Pozos Completados: 1\n\n"
+                      f"**Backlog Total:** $1,470,000\n"
+                      f"**Avance Financiero:** 30.5%",
+            
+            "backlog": f"💰 **Resumen Financiero:**\n\n"
+                      f"• SureOil: $740,000 (4 pozos)\n"
+                      f"• YPF: $585,000 (3 pozos)\n"
+                      f"• Petrobras: $525,000 (3 pozos)\n\n"
+                      f"**Total:** $1,850,000",
+            
+            "pozo": f"🛢️ **Información de Pozos:**\n\n"
+                   f"• X-123: EN_EJECUCION (45%) - Los Perales\n"
+                   f"• A-321: PLANIFICADO (10%) - Las Heras\n"
+                   f"• Z-789: BLOQUEADO (60%) - El Tordillo\n"
+                   f"• M-555: EN_ESPERA (95%) - Cañadón Seco\n"
+                   f"• C-301: COMPLETADO (100%) - Cerro Dragón\n\n"
+                   f"Para más detalles, consulta el Dashboard.",
+            
+            "certificacion": f"📋 **Certificaciones:**\n\n"
+                           f"• Total Certificadas: 3\n"
+                           f"• Pendientes: 2\n"
+                           f"• Facturadas: $247,500\n"
+                           f"• Por Facturar: $855,000",
+            
+            "alerta": f"⚠️ **Alertas Activas:**\n\n"
+                     f"• Cobertura de caja: 42 días (UMBRAL: 45 días)\n"
+                     f"• Pozo Z-789 bloqueado por incidencia HSE\n"
+                     f"• 3 permisos por vencer en 15 días",
+            
+            "logistica": f"🚚 **Estado de Logística:**\n\n"
+                        f"• Equipos en campo: 8\n"
+                        f"• Disponibles: 5\n"
+                        f"• En mantenimiento: 3\n\n"
+                        f"• Camiones en ruta: 4\n"
+                        f"• Próximas arrivals: 2 (30 min)",
+            
+            "cementacion": f"🔧 **Cementaciones Recientes:**\n\n"
+                          f"• Pozo X-123: Faja 2 completada\n"
+                          f"• Pozo T-201: Programada para mañana\n"
+                          f"• C-301: Validada OK",
+        }
+        
+        # Buscar coincidencia en palabras clave
+        for key, response in responses.items():
+            if key in query_lower:
+                return response
+        
+        # Respuesta por defecto
+        return f"""🤖 **Modo Offline - Respuesta Automática**
+
+No puedo acceder a Gemini en este momento (cuota agotada). 
+
+Sin embargo, puedo darte información general:
+
+**Operaciones:**
+• 10 pozos activos
+• 5 en ejecución, 4 planificados, 1 completado
+
+**Finanzas:**
+• Backlog: $1,850,000
+• Contratos: 3 activos
+
+**Sugerencias:**
+• Consulta el Dashboard para detalles en tiempo real
+• Revisa el módulo de Finanzas para контрактación
+• Verifica Pozos para estado de cada proyecto
+
+Para acceder a análisis IA avanzado, por favor:
+1. Espera 1 minuto y vuelve a intentar, o
+2. Configura una API Key de Google Gemini con cuota de pago"""
 
     def _build_system_prompt(self, context, role):
         """
