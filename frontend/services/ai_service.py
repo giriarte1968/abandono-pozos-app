@@ -26,12 +26,13 @@ class AIService:
         try:
             genai.configure(api_key=self.api_key)
             
-            # Lista de modelos preferidos
+            # Lista de modelos preferidos (sin prefijo 'models/')
             preferred_models = [
-                "models/gemini-1.5-flash",
-                "models/gemini-1.5-flash-latest", 
-                "models/gemini-2.0-flash",
-                "models/gemini-pro"
+                "gemini-1.5-flash",
+                "gemini-1.5-flash-latest", 
+                "gemini-1.5-pro",
+                "gemini-1.0-pro",
+                "gemini-pro"
             ]
             
             # Intentar usar el primer modelo disponible sin listar todos
