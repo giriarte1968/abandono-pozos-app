@@ -1,11 +1,25 @@
 import os
-import google.generativeai as genai
 from datetime import datetime
+
+# Intentar usar el nuevo paquete google.genai, sino caer a google.generativeai
+try:
+    import google.genai as genai
+    USE_NEW_PACKAGE = True
+    print("[AI SERVICE] Usando google.genai (nuevo paquete)")
+except ImportError:
+    try:
+        import google.generativeai as genai
+        USE_NEW_PACKAGE = False
+        print("[AI SERVICE] Usando google.generativeai (paquete legacy)")
+    except ImportError:
+        genai = None
+        USE_NEW_PACKAGE = None
+        print("[AI SERVICE] ⚠️ Sin paquete de Google AI")
 
 class AIService:
     """
     Servicio de Inteligencia Artificial Generativa (RAG + Reasoning).
-    Utiliza Google Gemini 1.5 Flash para razonar sobre datos operativos en vivo.
+    Utiliza Google Gemini 2.0 Flash para razonar sobre datos operativos en vivo.
     """
 
     def __init__(self):
@@ -20,35 +34,39 @@ class AIService:
     
     def _lazy_init(self):
         """Inicialización perezosa - solo cuando se necesita"""
-        if self._initialized or not self.api_key:
+        if self._initialized or not self.api_key or not genai:
             return
         
         try:
-            genai.configure(api_key=self.api_key)
+            if USE_NEW_PACKAGE:
+                genai.configure(api_key=self.api_key)
             
-            # Lista de modelos preferidos (sin prefijo 'models/')
+            # Lista de modelos preferidos - usar gemini-2.0-flash que es el más reciente
             preferred_models = [
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
                 "gemini-1.5-flash",
-                "gemini-1.5-flash-latest", 
-                "gemini-1.5-pro",
-                "gemini-1.0-pro",
-                "gemini-pro"
+                "gemini-1.5-flash-8b",
+                "gemini-1.0-pro"
             ]
             
-            # Intentar usar el primer modelo disponible sin listar todos
+            # Intentar usar el primer modelo disponible
             for model_name in preferred_models:
                 try:
                     self.model = genai.GenerativeModel(model_name)
                     print(f"[AI SERVICE] Usando: {model_name}")
-                    break
-                except:
+                    self._initialized = True
+                    return
+                except Exception as e:
+                    print(f"[AI SERVICE] Modelo {model_name} no disponible: {e}")
                     continue
             
-            if not self.model:
-                print("[AI SERVICE] ❌ No se pudo inicializar ningún modelo")
+            print("[AI SERVICE] ❌ No se pudo inicializar ningún modelo")
                 
         except Exception as e:
             print(f"[AI SERVICE] Error: {e}")
+        
+        self._initialized = True
         
         self._initialized = True
 
