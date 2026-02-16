@@ -5,9 +5,10 @@ Sin dependencias externas, usa solo componentes nativos de Streamlit
 
 import streamlit as st
 import time
-import logging
 
-logger = logging.getLogger(__name__)
+def log_timing(message):
+    """Helper para logging que funciona en producción"""
+    print(f"[{time.strftime('%H:%M:%S')}] {message}", flush=True)
 
 def render_sidebar():
     """
@@ -15,7 +16,7 @@ def render_sidebar():
     Versión 100% nativa sin antd - rápida y estable.
     """
     t_start = time.time()
-    logger.info("📋 [SIDEBAR] Iniciando renderizado...")
+    log_timing("📋 [SIDEBAR] Iniciando renderizado...")
     
     role = st.session_state.get('user_role')
     api = st.session_state.get('api_client')
@@ -37,7 +38,7 @@ def render_sidebar():
         """, unsafe_allow_html=True)
         
         st.divider()
-        logger.info(f"📋 [SIDEBAR] Header renderizado ({time.time() - t_header:.3f}s)")
+        log_timing(f"📋 [SIDEBAR] Header renderizado ({time.time() - t_header:.3f}s)")
         
         # 2. SECCIÓN CONECTIVIDAD
         t_conn = time.time()
@@ -66,7 +67,7 @@ def render_sidebar():
                 st.error(f"Error de conectividad: {e}")
 
             st.divider()
-        logger.info(f"📋 [SIDEBAR] Conectividad renderizada ({time.time() - t_conn:.3f}s)")
+        log_timing(f"📋 [SIDEBAR] Conectividad renderizada ({time.time() - t_conn:.3f}s)")
 
         # 3. Menú de Navegación
         t_menu = time.time()
@@ -76,7 +77,7 @@ def render_sidebar():
         render_menu_native(role, current_page)
 
         st.divider()
-        logger.info(f"📋 [SIDEBAR] Menú renderizado ({time.time() - t_menu:.3f}s)")
+        log_timing(f"📋 [SIDEBAR] Menú renderizado ({time.time() - t_menu:.3f}s)")
         
         # 4. Logout & Footer
         t_footer = time.time()
@@ -86,9 +87,9 @@ def render_sidebar():
             st.rerun()
 
         st.caption("v2.1.0 • Dev • Mock Mode")
-        logger.info(f"📋 [SIDEBAR] Footer renderizado ({time.time() - t_footer:.3f}s)")
+        log_timing(f"📋 [SIDEBAR] Footer renderizado ({time.time() - t_footer:.3f}s)")
         
-    logger.info(f"📋 [SIDEBAR] Total renderizado: {time.time() - t_start:.3f}s")
+    log_timing(f"📋 [SIDEBAR] Total renderizado: {time.time() - t_start:.3f}s")
 
 
 def render_menu_native(role, current_page):
