@@ -3,6 +3,13 @@ import streamlit as st
 def load_custom_css():
     st.markdown("""
         <style>
+        /* Escalar toda la aplicación al 80% */
+        .stApp {
+            zoom: 80%;
+            -moz-transform: scale(0.8);
+            -moz-transform-origin: 0 0;
+        }
+        
         /* Tipografía más moderna */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
