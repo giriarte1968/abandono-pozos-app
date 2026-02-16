@@ -101,8 +101,8 @@ def render_view():
     col1, col2, col3 = st.columns([1.2, 1, 1.2])
     
     with col2:
-        st.markdown("<h1 style='margin-bottom: 0;'>ABANDONPRO</h1>", unsafe_allow_html=True)
-        st.markdown("<h3 style='margin-top: 0; font-weight: 200; letter-spacing: 5px;'>V1.0</h3>", unsafe_allow_html=True)
+        st.markdown("<h2 style='margin-bottom: 0; font-size: 28px;'>AbandonPro</h2>", unsafe_allow_html=True)
+        st.markdown("<h4 style='margin-top: 0; font-weight: 200; letter-spacing: 3px; font-size: 14px;'>V1.0</h4>", unsafe_allow_html=True)
         st.write("")
         
         user = st.text_input("USER", label_visibility="collapsed", placeholder="USUARIO")
