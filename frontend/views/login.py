@@ -101,8 +101,8 @@ def render_view():
     col1, col2, col3 = st.columns([1.2, 1, 1.2])
     
     with col2:
-        st.markdown("<h1 style='margin-bottom: 0;'>BRACO</h1>", unsafe_allow_html=True)
-        st.markdown("<h3 style='margin-top: 0; font-weight: 200; letter-spacing: 5px;'>ENERGY</h3>", unsafe_allow_html=True)
+        st.markdown("<h1 style='margin-bottom: 0;'>ABANDONPRO</h1>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-top: 0; font-weight: 200; letter-spacing: 5px;'>V1.0</h3>", unsafe_allow_html=True)
         st.write("")
         
         user = st.text_input("USER", label_visibility="collapsed", placeholder="USUARIO")
@@ -127,4 +127,4 @@ def render_view():
                 else:
                     st.error("Usuario no encontrado en la base de datos.")
 
-        st.markdown("<div style='text-align: center; color: rgba(255,255,255,0.3); font-size: 0.7rem; margin-top: 25px;'>© 2026 Braco Energy System</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; color: rgba(255,255,255,0.3); font-size: 0.7rem; margin-top: 25px;'>© 2026 AbandonPro V1.0</div>", unsafe_allow_html=True)

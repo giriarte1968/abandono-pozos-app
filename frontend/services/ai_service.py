@@ -120,7 +120,7 @@ class AIService:
             # Si es error de quota (429), usar modo offline
             if "429" in error_msg or "quota" in error_msg.lower() or "exceeded" in error_msg.lower():
                 print("[AI SERVICE] Cuota agotada - usando modo offline")
-                return self._offline_response(user_query, context, role)
+                return self._offline_response(user_query, project_context, user_role)
             
             return f"⚠️ **Error de IA**: {error_msg}"
     
