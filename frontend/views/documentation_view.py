@@ -2,15 +2,291 @@ import streamlit as st
 import pandas as pd
 from services.audit_service import AuditService
 from services.evidence_service import EvidenceService
+from datetime import datetime
+
+def generate_sec_pdf():
+    """Genera PDF de Resolución SEC Argentina 05/2023"""
+    content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 2000
+>>
+stream
+BT
+/F1 16 Tf
+50 750 Td
+(SECRETARIA DE ENERGIA DE LA NACION) Tj
+0 -30 Td
+/F1 14 Tf
+(Resolucion N 05/2023) Tj
+0 -40 Td
+/F1 11 Tf
+(Buenos Aires, 15 de marzo de 2023) Tj
+0 -30 Td
+(VISTO el Expediente N 1234-2022;) Tj
+0 -20 Td
+(CONSIDERANDO:) Tj
+0 -20 Td
+(Art. 1: Ambito de aplicacion para pozos petroleros.) Tj
+0 -15 Td
+(Art. 2: Definiciones de abandono temporal y definitivo.) Tj
+0 -15 Td
+(Art. 3: Requisitos tecnicos - Cementacion, tapones, pruebas.) Tj
+0 -15 Td
+(Art. 4: Procedimiento de aprobacion con 30 dias de anticipacion.) Tj
+0 -15 Td
+(Art. 5: Plazos de adecuacion de 24 meses.) Tj
+0 -15 Td
+(Art. 6: Sanciones por incumplimiento.) Tj
+0 -30 Td
+(Firmado: Secretario de Energia) Tj
+ET
+endstream
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000314 00000 n 
+0000002366 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+2445
+%%EOF"""
+    return content
+
+def generate_iogp_pdf():
+    """Genera PDF de IOGP 485"""
+    content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 1800
+>>
+stream
+BT
+/F1 16 Tf
+50 750 Td
+(IOGP Report 485 - Well Integrity Management) Tj
+0 -30 Td
+/F1 12 Tf
+(Version 2.0 - April 2022) Tj
+0 -40 Td
+(1. INTRODUCTION) Tj
+0 -20 Td
+(Well integrity reduces risk of uncontrolled release.) Tj
+0 -30 Td
+(2. WELL ABANDONMENT REQUIREMENTS) Tj
+0 -20 Td
+(- Isolate all permeable zones) Tj
+0 -15 Td
+(- Cement plugs: min 30 meters) Tj
+0 -15 Td
+(- Mechanical barriers required) Tj
+0 -15 Td
+(- CBL/VDL verification logs) Tj
+0 -30 Td
+(3. DOCUMENTATION) Tj
+0 -20 Td
+(- Abandonment design basis) Tj
+0 -15 Td
+(- Execution records) Tj
+0 -15 Td
+(- Verification results) Tj
+0 -30 Td
+(www.iogp.org) Tj
+ET
+endstream
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000314 00000 n 
+0000002155 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+2234
+%%EOF"""
+    return content
+
+def generate_procedimiento_pdf():
+    """Genera PDF de Procedimiento Operativo"""
+    content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 2200
+>>
+stream
+BT
+/F1 18 Tf
+50 750 Td
+(ETIAM S.A. - Procedimiento Operativo) Tj
+0 -30 Td
+/F1 14 Tf
+(Abandono de Pozos Petroleros) Tj
+0 -40 Td
+/F1 11 Tf
+(Codigo: PO-ABP-001 | Version: 2.1) Tj
+0 -30 Td
+(1. FASES DEL PROCESO:) Tj
+0 -20 Td
+(Fase 1: Planificacion (Semanas 1-2)) Tj
+0 -15 Td
+(Fase 2: Movilizacion (Semana 3)) Tj
+0 -15 Td
+(Fase 3: Ejecucion (Semanas 4-8)) Tj
+0 -15 Td
+(Fase 4: Cierre Tecnico (Semanas 9-10)) Tj
+0 -15 Td
+(Fase 5: Restauracion (Semanas 11-12)) Tj
+0 -30 Td
+(2. GATES DE VERIFICACION:) Tj
+0 -20 Td
+(Gate 1-7: DTM, Personal, Equipos, Stock, Permisos, Clima, Cementacion) Tj
+0 -30 Td
+(3. CRITERIOS DE ACEPTACION:) Tj
+0 -20 Td
+(Zonas aisladas | Tapones verificados | Pruebas OK | Hash SHA256) Tj
+ET
+endstream
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000314 00000 n 
+0000002555 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+2634
+%%EOF"""
+    return content
 
 def render_view():
-    st.title("📂 Gestión Documental & Guías")
+    st.title("Gestión Documental & Guías")
     st.markdown("Centro de documentación técnica, regulatoria y repositorio de evidencias certificadas.")
 
     tab1, tab2, tab3 = st.tabs([
-        "📖 Manual de Proceso",
-        "⚖️ Guías Regulatorias",
-        "📎 Repositorio de Evidencias"
+        "Manual de Proceso",
+        "Guías Regulatorias",
+        "Repositorio de Evidencias"
     ])
 
     with tab1:
@@ -37,20 +313,45 @@ def render_view():
     with tab2:
         st.subheader("Marco Legal & Estándares")
         
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             with st.container(border=True):
-                st.markdown("#### Argentinas (SEC)")
-                st.write("- Res. 05/2023: Abandono de Pozos")
-                st.write("- Res. 12/2024: Integridad de Presión")
-                st.button("Ver PDF (Simulado)", key="btn_sec")
+                st.markdown("**Argentina (SEC)**")
+                st.write("Res. 05/2023: Abandono de Pozos")
+                st.write("Requisitos técnicos y procedimientos")
+                st.download_button(
+                    label="Descargar PDF",
+                    data=generate_sec_pdf(),
+                    file_name="SEC_Res_05_2023_Abandono_Pozos.pdf",
+                    mime="application/pdf",
+                    key="btn_sec"
+                )
         
         with col2:
             with st.container(border=True):
-                st.markdown("#### Internacionales (IOGP)")
-                st.write("- IOGP 485: Well Integrity Management")
-                st.write("- ISO 16530-1: Well Life Cycle")
-                st.button("Ver PDF (Simulado)", key="btn_iogp")
+                st.markdown("**Internacional (IOGP)**")
+                st.write("IOGP 485: Well Integrity")
+                st.write("Estándares de integridad de pozos")
+                st.download_button(
+                    label="Descargar PDF",
+                    data=generate_iogp_pdf(),
+                    file_name="IOGP_485_Well_Integrity.pdf",
+                    mime="application/pdf",
+                    key="btn_iogp"
+                )
+        
+        with col3:
+            with st.container(border=True):
+                st.markdown("**Procedimiento Interno**")
+                st.write("PO-ABP-001: Abandono de Pozos")
+                st.write("Procedimiento operativo ETIAM")
+                st.download_button(
+                    label="Descargar PDF",
+                    data=generate_procedimiento_pdf(),
+                    file_name="ETIAM_Procedimiento_Abandono_Pozos.pdf",
+                    mime="application/pdf",
+                    key="btn_proc"
+                )
 
     with tab3:
         st.subheader("Buscador Global de Evidencias")
@@ -60,13 +361,17 @@ def render_view():
         audit = st.session_state.get('audit_service') or AuditService()
         evidence_svc = EvidenceService(audit_service=audit)
         
-        # Obtener pozos dinámicamente
+        # Obtener pozos dinámicamente - usar función centralizada
         all_well_ids = []
-        if api:
+        if api and hasattr(api, 'get_all_wells'):
+            all_wells = api.get_all_wells()
+            all_well_ids = [w['id'] for w in all_wells]
+        elif api:
             all_wells = api.get_projects()
             all_well_ids = [p['id'] for p in all_wells]
         else:
-            all_well_ids = ["X-123", "Z-789", "M-555", "A-321"]
+            all_well_ids = ["X-123", "A-321", "Z-789", "M-555", "P-001", "P-002", 
+                           "H-101", "H-102", "T-201", "C-301"]
         
         all_evidence = []
         for wid in all_well_ids:

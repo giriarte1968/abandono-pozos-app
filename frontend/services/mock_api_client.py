@@ -205,6 +205,154 @@ class MockApiClient:
             {"item": "Gasoil", "unit": "lts", "min": 500}
         ]
 
+    def get_all_wells(self):
+        """
+        Retorna la lista completa de pozos (single source of truth).
+        Utilizada por todos los módulos para mantener consistencia.
+        """
+        return [
+            {
+                "id": "X-123",
+                "nombre": "Pozo X-123",
+                "yacimiento": "Los Perales",
+                "campana": "Campaña Norte 2024",
+                "estado_proyecto": "EN_EJECUCION",
+                "progreso": 45,
+                "proximo_hito": "Cementación Faja 2",
+                "responsable": "Juan Pérez",
+                "lat": -46.4328, "lon": -67.5267,
+                "workflow_status": "WAITING_DAILY_REPORT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "SureOil"
+            },
+            {
+                "id": "A-321",
+                "nombre": "Pozo A-321",
+                "yacimiento": "Las Heras",
+                "campana": "Campaña Norte 2024",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 10,
+                "proximo_hito": "Asignación de Equipos",
+                "responsable": "Maria Gonzalez",
+                "lat": -46.5428, "lon": -68.9344,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "SureOil"
+            },
+            {
+                "id": "Z-789",
+                "nombre": "Pozo Z-789",
+                "yacimiento": "El Tordillo",
+                "campana": "Campaña Sur 2024",
+                "estado_proyecto": "BLOQUEADO",
+                "progreso": 60,
+                "proximo_hito": "Resolución Incidencia HSE",
+                "responsable": "Carlos Ruiz",
+                "lat": -45.8569, "lon": -67.4853,
+                "workflow_status": "BLOCKED_BY_INCIDENT",
+                "estado_cierre": "APROBADO",
+                "cliente": "SureOil"
+            },
+            {
+                "id": "M-555",
+                "nombre": "Pozo M-555",
+                "yacimiento": "Cañadón Seco",
+                "campana": "Campaña Sur 2024",
+                "estado_proyecto": "EN_ESPERA_APROBACION",
+                "progreso": 95,
+                "proximo_hito": "Firma Auditoría Final",
+                "responsable": "Juan Pérez",
+                "lat": -46.5337, "lon": -67.6172,
+                "workflow_status": "WAITING_FINAL_APPROVAL",
+                "estado_cierre": "CERRADO_DEFENDIBLE",
+                "cliente": "SureOil"
+            },
+            {
+                "id": "P-001",
+                "nombre": "Pozo P-001 (YPF)",
+                "yacimiento": "Manantiales Behr",
+                "campana": "Campaña YPF 2025",
+                "estado_proyecto": "EN_EJECUCION",
+                "progreso": 25,
+                "proximo_hito": "Preparación de Superficie",
+                "responsable": "Pedro López",
+                "lat": -45.9123, "lon": -67.1234,
+                "workflow_status": "WAITING_DAILY_REPORT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "YPF"
+            },
+            {
+                "id": "P-002",
+                "nombre": "Pozo P-002 (YPF)",
+                "yacimiento": "Los Toldos",
+                "campana": "Campaña YPF 2025",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 5,
+                "proximo_hito": "Permisos Municipales",
+                "responsable": "Ana Martínez",
+                "lat": -45.8234, "lon": -67.2345,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "YPF"
+            },
+            {
+                "id": "H-101",
+                "nombre": "Pozo H-101 (YPF)",
+                "yacimiento": "Bajada del Palo",
+                "campana": "Campaña YPF 2025",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 0,
+                "proximo_hito": "Evaluación Técnica",
+                "responsable": "Luis Fernández",
+                "lat": -45.7345, "lon": -67.3456,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "YPF"
+            },
+            {
+                "id": "H-102",
+                "nombre": "Pozo H-102 (Petrobras)",
+                "yacimiento": "El Huemul",
+                "campana": "Campaña Petrobras 2025",
+                "estado_proyecto": "PLANIFICADO",
+                "progreso": 15,
+                "proximo_hito": "Movilización Equipos",
+                "responsable": "Carlos Ruiz",
+                "lat": -45.6456, "lon": -67.4567,
+                "workflow_status": "WAITING_DTM_ASSIGNMENT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "Petrobras"
+            },
+            {
+                "id": "T-201",
+                "nombre": "Pozo T-201 (Petrobras)",
+                "yacimiento": "Tierra del Fuego",
+                "campana": "Campaña Petrobras 2025",
+                "estado_proyecto": "EN_EJECUCION",
+                "progreso": 40,
+                "proximo_hito": "Cementación Faja 1",
+                "responsable": "Roberto Silva",
+                "lat": -53.8123, "lon": -67.8912,
+                "workflow_status": "WAITING_DAILY_REPORT",
+                "estado_cierre": "EN_PROCESO",
+                "cliente": "Petrobras"
+            },
+            {
+                "id": "C-301",
+                "nombre": "Pozo C-301 (Petrobras)",
+                "yacimiento": "Cerro Dragón",
+                "campana": "Campaña Petrobras 2025",
+                "estado_proyecto": "COMPLETADO",
+                "progreso": 100,
+                "proximo_hito": "Archivo Final",
+                "responsable": "María Torres",
+                "lat": -45.5567, "lon": -67.5678,
+                "workflow_status": "COMPLETED",
+                "estado_cierre": "CERRADO_DEFENDIBLE",
+                "cliente": "Petrobras"
+            }
+        ]
+
     def get_all_logistics(self):
         """Consolida información logística de todos los proyectos activos."""
         logistics_data = []

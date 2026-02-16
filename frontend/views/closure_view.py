@@ -50,10 +50,18 @@ def render_view():
     with tab1:
         st.subheader("Proceso de Cierre Técnico por Pozo")
 
-        # Selector de pozo
-        all_pozos = cem_svc.get_all_pozo_ids()
-        if not all_pozos:
-            all_pozos = ["X-123", "Z-789", "M-555"]
+        # Selector de pozo - usar todos los pozos disponibles (10 pozos)
+        api = st.session_state.get('api_client')
+        if api:
+            all_wells = api.get_all_wells()
+            all_pozos = [w['id'] for w in all_wells]
+        else:
+            # Fallback: usar CementationService o lista completa
+            all_pozos = cem_svc.get_all_pozo_ids()
+            if not all_pozos:
+                all_pozos = ["X-123", "A-321", "Z-789", "M-555", "P-001", "P-002", 
+                           "H-101", "H-102", "T-201", "C-301"]
+        
         pozo_sel = st.selectbox("Seleccionar Pozo", sorted(all_pozos), key="cierre_pozo")
 
         cierre = closure_svc.get_cierre(pozo_sel)
