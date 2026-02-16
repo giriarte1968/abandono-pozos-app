@@ -167,22 +167,15 @@ def render_view(project_id):
             lon = project.get('lon', -68.0)
             well_id = project.get('well', project.get('id', 'N/A'))
             
-            #Fallback para mapa - usar imagen estatica de OpenStreetMap
-            try:
-                # Intentar folium primero
-                m = folium.Map(location=[lat, lon], zoom_start=12, tiles='OpenStreetMap')
-                folium.Marker([lat, lon], tooltip=well_id, icon=folium.Icon(color='red')).add_to(m)
-                st_folium(m, use_container_width=True, height=280, returned_objects=[])
-            except Exception as e:
-                # Si folium falla, mostrar mapa estatico
-                st.markdown(f"""
-                <div style="background-color: #1e1e1e; border-radius: 10px; padding: 10px; text-align: center;">
-                    <img src="https://staticmap.openstreetmap.de/staticmap.php?center={lat},{lon}&zoom=12&size=500x300&markers={lat},{lon},red-pushpin" 
-                         style="width: 100%; border-radius: 8px;" 
-                         alt="Mapa del pozo">
-                </div>
-                """, unsafe_allow_html=True)
-                st.caption(f"📍 {well_id} - Lat: {lat}, Lon: {lon}")
+            # Usar mapa estatico de OpenStreetMap como primary
+            st.markdown(f"""
+            <div style="background-color: #1e1e1e; border-radius: 10px; padding: 10px; text-align: center;">
+                <img src="https://staticmap.openstreetmap.de/staticmap.php?center={lat},{lon}&zoom=12&size=500x280&markers={lat},{lon},red-pushpin" 
+                     style="width: 100%; border-radius: 8px;" 
+                     alt="Mapa del pozo {well_id}">
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">📍 {well_id} | Lat: {lat}, Lon: {lon}</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     # --- Disclaimer Obligatorio (Legal) ---
     st.markdown("""
