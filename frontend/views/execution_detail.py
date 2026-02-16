@@ -167,16 +167,22 @@ def render_view(project_id):
             lon = project.get('lon', -68.0)
             well_id = project.get('well', project.get('id', 'N/A'))
             
-            #try/except para folium - si falla mostrar coordenadas
+            #Fallback para mapa - usar imagen estatica de OpenStreetMap
             try:
+                # Intentar folium primero
                 m = folium.Map(location=[lat, lon], zoom_start=12, tiles='OpenStreetMap')
                 folium.Marker([lat, lon], tooltip=well_id, icon=folium.Icon(color='red')).add_to(m)
                 st_folium(m, use_container_width=True, height=280, returned_objects=[])
             except Exception as e:
-                st.info(f"📍 Coordenadas del Pozo: {lat}, {lon}")
-                st.caption(f"Lat: {lat}, Lon: {lon}")
-            
-            st.caption(f"Lat: {lat}, Lon: {lon}")
+                # Si folium falla, mostrar mapa estatico
+                st.markdown(f"""
+                <div style="background-color: #1e1e1e; border-radius: 10px; padding: 10px; text-align: center;">
+                    <img src="https://staticmap.openstreetmap.de/staticmap.php?center={lat},{lon}&zoom=12&size=500x300&markers={lat},{lon},red-pushpin" 
+                         style="width: 100%; border-radius: 8px;" 
+                         alt="Mapa del pozo">
+                </div>
+                """, unsafe_allow_html=True)
+                st.caption(f"📍 {well_id} - Lat: {lat}, Lon: {lon}")
     
     # --- Disclaimer Obligatorio (Legal) ---
     st.markdown("""
