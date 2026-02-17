@@ -7,11 +7,12 @@ def render_view():
     api = st.session_state['api_client']
     
     # Filtros
-    col1, col2 = st.columns([1, 3])
+    col1, col2 = st.columns([1, 4])
     with col1:
         filter_state = st.selectbox(
             "Filtrar por Estado:",
-            ["Todos", "PLANIFICADO", "EN_EJECUCION", "BLOQUEADO", "FINALIZADO"]
+            ["Todos", "PLANIFICADO", "EN_EJECUCION", "BLOQUEADO", "FINALIZADO"],
+            label_visibility="collapsed"
         )
     
     # Obtener datos
@@ -47,10 +48,10 @@ def render_view():
     
     # Selector de Acción
     st.divider()
-    col_act1, col_act2 = st.columns([3, 1])
+    col_act1, col_act2, col_act3 = st.columns([3, 1, 2])
     with col_act1:
         st.caption("Seleccione el ID del proyecto para ver detalle y ejecutar acciones.")
-        selected_id = st.selectbox("Seleccionar Proyecto:", df_projects['id'].tolist())
+        selected_id = st.selectbox("Seleccionar Proyecto:", df_projects['id'].tolist(), label_visibility="collapsed")
     
     with col_act2:
         st.write("") # Spacer
