@@ -22,9 +22,12 @@ def load_custom_css():
             font-size: 14px !important;
         }
         
-        /* Popup de selectbox - abrir debajo del control */
+        /* LOV alignment adjustments */
+        div[data-baseweb="select"] {
+            width: 100% !important;
+        }
         div[data-baseweb="popover"] {
-            transform: translateX(0) !important;
+            left: 0 !important;
         }
         
         /* Títulos con gradiente */
