@@ -1,116 +1,129 @@
 import streamlit as st
 
 def render_stepper(current_status_code):
-    """
-    Renderiza una barra de progreso visual (Stepper).
-    
-    NOTA: Este componente NO define el orden del proceso. 
-    Solo visualiza el estado actual que reporta el Workflow de Temporal.
-    """
-    
-    # Mapeo de Estados Internos -> Pasos Visuales
-    # El orden es puramente visual para el usuario
     steps = [
-        {"code": "INIT", "label": "Inicio Trámite"},
+        {"code": "INIT", "label": "Inicio"},
         {"code": "PLANNING", "label": "Planificación"},
-        {"code": "LOGISTICS", "label": "Logística (DTM)"},
+        {"code": "LOGISTICS", "label": "Logística"},
         {"code": "EXECUTION", "label": "Ejecución"},
         {"code": "CLOSING", "label": "Cierre"}
     ]
     
-    # Determinar índice actual basado en mapeo simple
-    # En producción esto vendría de una lógica de negocio más robusta
-    current_idx = 0
-    
-    # Mapeo simple de los estados del Mock a los pasos visuales
     status_map = {
         "WAITING_JUSTIFICATION": 0,
         "PLANIFICADO": 1,
         "WAITING_DTM_ASSIGNMENT": 2,
         "EN_EJECUCION": 3,
         "WAITING_DAILY_REPORT": 3,
-        "BLOCKED_BY_INCIDENT": 3, # Se queda en ejecución pero rojo
+        "BLOCKED_BY_INCIDENT": 3,
         "WAITING_FINAL_APPROVAL": 4,
         "FINALIZADO": 4
     }
     
-    # Intentar buscar por estado de proyecto o estado de workflow
-    # Aquí asumimos que recibimos algo mapeable
     current_idx = status_map.get(current_status_code, 0)
 
-    # Renderizado CSS custom para simular stepper
     st.markdown("""
 <style>
-    .step-container {
+    .stepper-wrapper {
         display: flex;
-        justify_content: space-between;
-        margin-bottom: 20px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin: 30px 0 40px 0;
+        padding: 0 20px;
     }
-    .step {
-        text-align: center;
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         flex: 1;
         position: relative;
     }
     .step-circle {
-        width: 30px;
-        height: 30px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
-        background-color: #e0e0e0;
-        color: #666;
+        background: linear-gradient(145deg, #2a2a3a, #1a1a2a);
+        border: 3px solid #3a3a4a;
         display: flex;
         align-items: center;
-        justify_content: center;
-        margin: 0 auto 5px;
-        font-weight: bold;
+        justify-content: center;
+        font-size: 22px;
         z-index: 2;
-        position: relative;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-    .step.active .step-circle {
-        background-color: #007bff;
-        color: white;
-        border: 2px solid #0056b3;
+    .step-item.completed .step-circle {
+        background: linear-gradient(145deg, #22c55e, #16a34a);
+        border-color: #22c55e;
+        box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
     }
-    .step.completed .step-circle {
-        background-color: #28a745;
-        color: white;
+    .step-item.active .step-circle {
+        background: linear-gradient(145deg, #3b82f6, #2563eb);
+        border-color: #3b82f6;
+        box-shadow: 0 4px 25px rgba(59, 130, 246, 0.5);
+        animation: pulse 2s infinite;
     }
-    .step-line {
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 4px 25px rgba(59, 130, 246, 0.5); }
+        50% { box-shadow: 0 4px 35px rgba(59, 130, 246, 0.8); }
+    }
+    .step-connector {
         position: absolute;
-        top: 15px;
-        left: -50%;
-        width: 100%;
-        height: 2px;
-        background-color: #e0e0e0;
+        top: 25px;
+        left: calc(50% + 30px);
+        width: calc(100% - 60px);
+        height: 4px;
+        background: linear-gradient(90deg, #3a3a4a, #2a2a3a);
         z-index: 1;
+        border-radius: 2px;
     }
-    .step:first-child .step-line {
+    .step-item.completed .step-connector {
+        background: linear-gradient(90deg, #22c55e, #16a34a);
+    }
+    .step-item:last-child .step-connector {
         display: none;
     }
-    .step.completed .step-line {
-        background-color: #28a745;
-    }
     .step-label {
-        font-size: 0.8em;
+        margin-top: 12px;
+        font-size: 13px;
+        font-weight: 500;
         color: #666;
+        text-align: center;
+        transition: all 0.3s ease;
     }
-    .step.active .step-label {
-        color: #007bff;
-        font-weight: bold;
+    .step-item.completed .step-label {
+        color: #22c55e;
+        font-weight: 600;
+    }
+    .step-item.active .step-label {
+        color: #3b82f6;
+        font-weight: 700;
     }
 </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
     
-    html_steps = '<div class="step-container">'
+    html = '<div class="stepper-wrapper">'
     
     for idx, step in enumerate(steps):
         css_class = ""
+        icon = ""
+        
         if idx < current_idx:
             css_class = "completed"
+            icon = "✓"
         elif idx == current_idx:
             css_class = "active"
-            
-        html_steps += f'<div class="step {css_class}"><div class="step-line"></div><div class="step-circle">{idx + 1}</div><div class="step-label">{step["label"]}</div></div>'
+            icon = "◆"
+        else:
+            icon = "○"
+        
+        html += f'''
+        <div class="step-item {css_class}">
+            <div class="step-connector"></div>
+            <div class="step-circle">{icon}</div>
+            <div class="step-label">{step["label"]}</div>
+        </div>'''
     
-    html_steps += '</div>'
+    html += '</div>'
     
-    st.markdown(html_steps, unsafe_allow_html=True)
+    st.markdown(html, unsafe_allow_html=True)

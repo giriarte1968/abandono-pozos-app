@@ -17,25 +17,47 @@ def load_custom_css():
             font-family: 'Inter', sans-serif;
         }
         
-        /* Selectbox/Dropdown - corregir posición y tamaño */
-        div[data-baseweb="select"] > div {
-            font-size: 14px !important;
-        }
-
-        /* LOV alignment adjustments */
+        /* ============================================ */
+        /* SELECTBOX / LOV - Tamaño consistente */
+        /* ============================================ */
+        
+        /* Selector input - tamaño base */
         div[data-baseweb="select"] {
             width: 100% !important;
-        }
-        div[data-baseweb="popover"] {
-            left: 0 !important;
         }
         
-        /* LOV alignment adjustments */
-        div[data-baseweb="select"] {
-            width: 100% !important;
+        div[data-baseweb="select"] > div {
+            font-size: 14px !important;
+            min-height: 42px !important;
         }
+        
+        /* Texto dentro del selector */
+        div[data-baseweb="select"] > div > div {
+            font-size: 14px !important;
+        }
+        
+        /* Dropdown popup - mismo ancho que selector */
         div[data-baseweb="popover"] {
             left: 0 !important;
+            width: 100% !important;
+        }
+        
+        div[data-baseweb="popover"] > div {
+            width: 100% !important;
+        }
+        
+        /* Items del dropdown - mismo tamaño de fuente */
+        div[data-baseweb="select"] ul[role="listbox"] {
+            font-size: 14px !important;
+        }
+        
+        div[data-baseweb="select"] ul li {
+            font-size: 14px !important;
+            padding: 10px 14px !important;
+        }
+        
+        div[data-baseweb="select"] ul li > div {
+            font-size: 14px !important;
         }
         
         /* Títulos con gradiente */

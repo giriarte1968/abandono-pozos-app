@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
 import json
+import os
 from services.audit_service import AuditService
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def render_timeline(project_id):
     """
@@ -54,20 +57,20 @@ def render_timeline(project_id):
             col2.caption(f"Usuario: {event['id_usuario']} ({event['rol_usuario']})")
 
             # --- PREVISUALIZACIÓN DE EVIDENCIA (Miniatura) ---
+            file_name = None
+            local_path = None
             if event['tipo_evento'] == "EVIDENCE_UPLOAD":
                 try:
-                    import os
                     state = json.loads(event['estado_nuevo']) if isinstance(event['estado_nuevo'], str) else event['estado_nuevo']
                     file_name = state.get('file_name') or state.get('file')
                     
                     if file_name:
-                        # Buscamos archivo local en storage/evidence/
-                        local_path = os.path.join(os.getcwd(), "storage", "evidence", file_name)
+                        local_path = os.path.join(BASE_DIR, "storage", "evidence", file_name)
                         
                         if os.path.exists(local_path):
                             col2.image(local_path, caption="Certificado: " + file_name, width=300)
                         else:
-                            col2.warning(f"Archivo de evidencia no encontrado localmente: {file_name}")
+                            col2.warning(f"Archivo de evidencia no encontrado: {file_name}")
                 except Exception as ex:
                     col2.error(f"Error cargando miniatura: {str(ex)}")
 
