@@ -18,7 +18,7 @@ def load_custom_css():
         }
         
         /* ============================================ */
-        /* SELECTBOX / LOV - Tamaño de fuente consistente */
+        /* SELECTBOX / LOV - Tamaño consistente */
         /* ============================================ */
         
         /* Selector input - tamaño de fuente */
@@ -31,9 +31,22 @@ def load_custom_css():
             font-size: 14px !important;
         }
         
+        /* Dropdown panel - mismo ancho que selector */
+        div[data-baseweb="select"] + div[data-baseweb="popover"],
+        div[data-baseweb="popover"]:has(ul[role="listbox"]) {
+            min-width: unset !important;
+            width: max-content !important;
+            max-width: 300px !important;
+        }
+        
         /* Items del dropdown - mismo tamaño de fuente */
+        ul[role="listbox"] {
+            font-size: 14px !important;
+        }
+        
         ul[role="listbox"] li {
             font-size: 14px !important;
+            padding: 8px 12px !important;
         }
         
         ul[role="listbox"] li > div,
