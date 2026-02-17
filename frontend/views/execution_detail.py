@@ -9,8 +9,53 @@ from views.well_timeline import render_timeline
 import folium
 from streamlit_folium import st_folium
 
+def render_card(title, value, icon="📊", status_color=None):
+    """Renderiza una card uniforme con icono, label y valor"""
+    status_style = ""
+    if status_color == "green":
+        status_style = "background: linear-gradient(135deg, #1e3a2f 0%, #2d5a3d 100%); border-left: 4px solid #22c55e;"
+    elif status_color == "red":
+        status_style = "background: linear-gradient(135deg, #3a1e1e 0%, #5a2d2d 100%); border-left: 4px solid #ef4444;"
+    elif status_color == "yellow":
+        status_style = "background: linear-gradient(135deg, #3a3a1e 0%, #5a5a2d 100%); border-left: 4px solid #eab308;"
+    else:
+        status_style = "background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3d 100%); border-left: 4px solid #3b82f6;"
+    
+    st.markdown(f"""
+    <div style="{status_style} border-radius: 12px; padding: 20px; margin: 10px 0; height: 140px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="font-size: 24px; margin-bottom: 5px;">{icon}</div>
+        <div style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">{title}</div>
+        <div style="font-size: 20px; font-weight: 600; color: #fff;">{value}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+def render_gate_card(gate_name, status, icon, can_override=False, override_callback=None):
+    """Renderiza una card de gate regulatorio con estado visual"""
+    if status == "ABIERTO" or status == "CUMPLIDO":
+        color = "green"
+        badge = "🟢 ABIERTO"
+        status_icon = "✓"
+    elif status == "BLOQUEADO" or status == "FALLA CRÍTICA":
+        color = "red"
+        badge = "🔴 BLOQUEADO"
+        status_icon = "✕"
+    else:  # PENDIENTE
+        color = "yellow"
+        badge = "🟡 PENDIENTE"
+        status_icon = "⏳"
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        render_card(gate_name, badge, icon, color)
+    
+    if can_override and (status == "BLOQUEADO" or status == "FALLA CRÍTICA"):
+        with col2:
+            if st.button("Forzar", key=f"ov_{gate_name}", use_container_width=True):
+                if override_callback:
+                    override_callback()
+
 def render_view(project_id):
-    # Usar cliente de sesion para persistencia (evitar reset en cada rerun)
+    # Usar cliente de sesion para persistencia
     api = st.session_state.get('api_client')
     if not api:
         api = MockApiClient()
@@ -32,154 +77,193 @@ def render_view(project_id):
             st.rerun()
         return
 
-    # 2. Header y Navegacion
-    col_nav1, col_nav2 = st.columns([1, 5])
+    # ═══════════════════════════════════════════════════════════════
+    # HEADER PRINCIPAL
+    # ═══════════════════════════════════════════════════════════════
+    col_nav1, col_nav2 = st.columns([1, 8])
     with col_nav1:
-        if st.button("⬅ Volver"):
+        if st.button("⬅ Volver", use_container_width=True):
             st.session_state['current_page'] = 'Dashboard'
             st.rerun()
     with col_nav2:
-        st.title(f"📂 Expediente de Abandono: Pozo {project['well']}")
+        st.markdown(f"""
+        <h1 style="margin: 0; padding: 0; background: linear-gradient(45deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            📂 Expediente de Abandono: Pozo {project['well']}
+        </h1>
+        """, unsafe_allow_html=True)
     
-    # --- CONTEXTO OPERATIVO (Informativo) ---
-    with st.container(border=True):
-        col_ctx1, col_ctx2, col_ctx3 = st.columns(3)
-        col_ctx1.metric("🎯 Campaña", project.get('campana', 'N/A'))
-        col_ctx2.metric("📅 Fecha Operativa", "2026-02-01")
-        col_ctx3.metric("👥 Responsable", project.get('responsable', 'N/A'))
-
-    # --- REGULATORY GATES (Hybrid Model) ---
-    # --- REGULATORY GATES (Hybrid Model) ---
-    st.markdown("##### 🛡️ Status de Gates Regulatorios (External Truth)")
+    st.markdown("---")
     
-    g_col1, g_col2, g_col3 = st.columns(3)
+    # ═══════════════════════════════════════════════════════════════
+    # SECCIÓN 1: INFORMACIÓN GENERAL (Grid 3 columnas)
+    # ═══════════════════════════════════════════════════════════════
+    st.markdown("##### 📋 Información General")
+    
+    col_info1, col_info2, col_info3 = st.columns(3)
+    with col_info1:
+        render_card("Campaña", project.get('campana', 'N/A'), "🎯")
+    with col_info2:
+        render_card("Fecha Operativa", "2026-02-01", "📅")
+    with col_info3:
+        render_card("Responsable", project.get('responsable', 'N/A'), "👥")
+    
+    st.markdown("---")
+    
+    # ═══════════════════════════════════════════════════════════════
+    # SECCIÓN 2: GATES REGULATORIOS (External Truth)
+    # ═══════════════════════════════════════════════════════════════
+    st.markdown("##### 🛡️ Gates Regulatorios (External Truth)")
     
     # Cache de Overrides
     cache = api._offline_cache.get(project_id, {})
-
-    # Gate 1: DTM
-    dtm_ok = project.get('dtm_confirmado', False) or cache.get('GATE_DTM')
-    g_col1.markdown(f"**Gate DTM / Apertura:**")
-    g_col1.markdown(f"{'🟢 ABIERTO' if dtm_ok else '🔴 BLOQUEADO'}")
-    if not dtm_ok and not api.is_online():
-        if g_col1.button("Forzar Apertura (Offline)", key="ov_dtm"):
-             api.manual_override_gate(project_id, "GATE_DTM", "Apertura forzada por falta de señal en locación.", user_id=username, user_role=user_role)
-             st.rerun()
     
-    # Gate 2: Personal
-    pers_ok = project.get('personal_confirmado_hoy', False) or cache.get('GATE_PERS')
-    g_col2.markdown(f"**Gate Personal Presente:**")
-    g_col2.markdown(f"{'🟢 ABIERTO' if pers_ok else '🔴 BLOQUEADO'}")
-    if not pers_ok and not api.is_online():
-        if g_col2.button("Forzar Apertura (Offline)", key="ov_pers"):
-             api.manual_override_gate(project_id, "GATE_PERS", "Ingreso manual validado físicamente (Sin señal).", user_id=username, user_role=user_role)
-             st.rerun()
-
-    # Gate 3: HSE
-    hse_ok = (not any(p['critical'] and (not p.get('medical_ok') or not p.get('induction_ok')) for p in project.get('personnel_list', []))) or cache.get('GATE_HSE')
-    g_col3.markdown(f"**Gate HSE Compliance:**")
-    g_col3.markdown(f"{'🟢 CUMPLIDO' if hse_ok else '🚨 FALLA CRÍTICA'}")
-    if not hse_ok and not api.is_online():
-        if g_col3.button("Forzar Apertura (Offline)", key="ov_hse"):
-             api.manual_override_gate(project_id, "GATE_HSE", "Cumplimiento validado por supervisor (Sin señal).", user_id=username, user_role=user_role)
-             st.rerun()
-
-    # Gate 4: Cumplimiento Regulatorio
+    col_gate1, col_gate2, col_gate3 = st.columns(3)
+    
+    with col_gate1:
+        # Gate 1: DTM
+        dtm_ok = project.get('dtm_confirmado', False) or cache.get('GATE_DTM')
+        status = "ABIERTO" if dtm_ok else "BLOQUEADO"
+        render_gate_card(
+            "Gate DTM / Apertura", 
+            status, 
+            "🚪",
+            can_override=not dtm_ok and not api.is_online(),
+            override_callback=lambda: api.manual_override_gate(project_id, "GATE_DTM", "Apertura forzada por falta de señal en locación.", user_id=username, user_role=user_role)
+        )
+    
+    with col_gate2:
+        # Gate 2: Personal
+        pers_ok = project.get('personal_confirmado_hoy', False) or cache.get('GATE_PERS')
+        status = "ABIERTO" if pers_ok else "BLOQUEADO"
+        render_gate_card(
+            "Gate Personal Presente", 
+            status, 
+            "👷",
+            can_override=not pers_ok and not api.is_online(),
+            override_callback=lambda: api.manual_override_gate(project_id, "GATE_PERS", "Ingreso manual validado físicamente (Sin señal).", user_id=username, user_role=user_role)
+        )
+    
+    with col_gate3:
+        # Gate 3: HSE
+        hse_ok = (not any(p['critical'] and (not p.get('medical_ok') or not p.get('induction_ok')) for p in project.get('personnel_list', []))) or cache.get('GATE_HSE')
+        status = "CUMPLIDO" if hse_ok else "FALLA CRÍTICA"
+        render_gate_card(
+            "Gate HSE Compliance", 
+            status, 
+            "🛡️",
+            can_override=not hse_ok and not api.is_online(),
+            override_callback=lambda: api.manual_override_gate(project_id, "GATE_HSE", "Cumplimiento validado por supervisor (Sin señal).", user_id=username, user_role=user_role)
+        )
+    
+    st.markdown("---")
+    
+    # ═══════════════════════════════════════════════════════════════
+    # SECCIÓN 3: CUMPLIMIENTO REGULATORIO
+    # ═══════════════════════════════════════════════════════════════
+    st.markdown("##### 📜 Cumplimiento Regulatorio")
+    
     from services.compliance_service import ComplianceService
     _compliance = ComplianceService(audit_service=api.audit)
     _comp_summary = _compliance.get_compliance_summary(project_id)
     
-    st.markdown("##### 📜 Cumplimiento Regulatorio")
-    gc1, gc2, gc3 = st.columns(3)
-    gc1.markdown(f"**{_comp_summary['resumen']}**")
-    gc2.metric("Reglas Evaluadas", _comp_summary['total_reglas'])
-    gc3.metric("Overrides Activos", _comp_summary['overrides'])
-
-    # Gate 5: Control de Cementación
+    col_comp_main, col_comp1, col_comp2 = st.columns([2, 1, 1])
+    
+    with col_comp_main:
+        # Card resumen principal
+        status_general = "CUMPLE" if _comp_summary['resumen'] == "CUMPLE" else "NO CUMPLE"
+        color = "green" if status_general == "CUMPLE" else "red"
+        render_card("Estado General", status_general, "✓" if status_general == "CUMPLE" else "✕", color)
+        st.caption(f"**{_comp_summary['total_reglas']} reglas verificadas**")
+    
+    with col_comp1:
+        render_card("Reglas Evaluadas", str(_comp_summary['total_reglas']), "📋")
+    
+    with col_comp2:
+        render_card("Overrides Activos", str(_comp_summary['overrides']), "⚠️", "yellow" if _comp_summary['overrides'] > 0 else None)
+    
+    st.markdown("---")
+    
+    # ═══════════════════════════════════════════════════════════════
+    # SECCIÓN 4: CONTROL DE CEMENTACIÓN
+    # ═══════════════════════════════════════════════════════════════
     from services.cementation_service import CementationService
     _cementation = CementationService(audit_service=api.audit)
     _cem_estado = _cementation.get_estado_cementacion_pozo(project_id)
-
+    
     st.markdown("##### 🧪 Control de Cementación")
-    cc1, cc2 = st.columns([3, 1])
-    cc1.markdown(f"**{_cem_estado['resumen']}**")
-    cc2.markdown(f"**Avance:** {'✅ Habilitado' if _cem_estado['puede_avanzar'] else '🚫 Bloqueado'}")
-
-    # Gate 6: Cierre Técnico
+    
+    col_cem1, col_cem2 = st.columns([3, 1])
+    with col_cem1:
+        render_card("Estado Cementación", _cem_estado['resumen'], "🔧")
+    with col_cem2:
+        status = "✅ Habilitado" if _cem_estado['puede_avanzar'] else '🚫 Bloqueado'
+        color = "green" if _cem_estado['puede_avanzar'] else "red"
+        render_card("Avance", status, "▶", color)
+    
+    st.markdown("---")
+    
+    # ═══════════════════════════════════════════════════════════════
+    # SECCIÓN 5: CIERRE TÉCNICO
+    # ═══════════════════════════════════════════════════════════════
     from services.closure_service import ClosureService
     _closure = ClosureService(audit_service=api.audit, cementation_service=_cementation)
     _cierre_estado = _closure.get_estado_cierre_pozo(project_id)
-
+    
     st.markdown("##### 🏁 Cierre Técnico")
-    ct1, ct2 = st.columns([3, 1])
-    ct1.markdown(f"**{_cierre_estado['resumen']}**")
-    ct2.markdown(f"**Regulador:** {'✅ Listo' if _cierre_estado['estado'] == 'CERRADO_DEFENDIBLE' else '🔄 Pendiente'}")
-
-    # 3. Stepper de Progreso (mejorado con tooltips)
+    
+    col_cierre1, col_cierre2 = st.columns([3, 1])
+    with col_cierre1:
+        render_card("Estado Cierre", _cierre_estado['resumen'], "🏁")
+    with col_cierre2:
+        status = '✅ Listo' if _cierre_estado['estado'] == 'CERRADO_DEFENDIBLE' else '🔄 Pendiente'
+        color = "green" if _cierre_estado['estado'] == 'CERRADO_DEFENDIBLE' else "yellow"
+        render_card("Regulador", status, "📋", color)
+    
+    st.markdown("---")
+    
+    # 3. Stepper de Progreso
     render_stepper(project['status'])
-
-    # --- Lógica Global de Estado Operativo ---
-    # Se calcula ANTES de renderizar para mostrar el banner superior
     
-    # 1. Personal
-    personal_data = project.get('personnel_list', [])
-    criticos_missing = [p for p in personal_data if p['critical'] and (not p.get('medical_ok') or not p.get('induction_ok'))] # Simulado check inicial
-    # Nota: El check de "Presente" se hace en el loop de UI, aquí asumimos default True para el cálculo inicial o leemos de DB si existiera.
-    # Para el MVP, el estado dinámico depende de la interacción del usuario, por lo que el cálculo final se hace al final del render o usamos st.session_state.
-    # Simplificación MVP: Asumimos estado base "Con Riesgo" si hay criticos fallando en DB.
-    
-    # --- UI RENDER START ---
-
-    # Banner de Estado Operativo (Placeholder inicial, se actualiza dinámicamente o se renderiza con datos guardados)
-    # En este MVP stateless, calculamos en tiempo real.
-    
-    # --- CLIMA Y MAPA EN FILA (Side-by-Side) ---
+    # ═══════════════════════════════════════════════════════════════
+    # SECCIÓN 6: CLIMA Y MAPA
+    # ═══════════════════════════════════════════════════════════════
+    weather_alert = False
     col_geo1, col_geo2 = st.columns(2)
     
     with col_geo1:
-        # --- CLIMA EN LOCACIÓN ---
-        with st.container(border=True, height=450):
-            st.markdown(f"**📍 Meteorología** ({project.get('lat', 0)}, {project.get('lon', 0)})")
-            
-            # Fetch weather data
+        st.markdown("##### 📍 Meteorología")
+        with st.container(border=True):
             weather = weather_service.get_weather(project.get('lat', -46.0), project.get('lon', -67.0))
-            weather_alert = False
-
+            
             if weather:
+                weather_alert = weather.get('alerta_viento', False)
                 w_c1, w_c2 = st.columns(2)
                 w_c1.metric("Temp", weather['temp_actual'])
                 w_c2.metric("Viento", weather['viento_actual'], delta_color="inverse" if weather['alerta_viento'] else "normal")
                 st.caption(f"Forecast: Max {weather['max_temp']} / Min {weather['min_temp']}")
                 st.caption(f"Precipitación: {weather['precip_actual']}")
                 
-                weather_alert = weather['alerta_viento']
                 if weather['alerta_viento']:
                     st.warning("⚠️ ALERTA DE VIENTO")
             else:
                 st.write("Datos no disponibles.")
-
+    
     with col_geo2:
-        # --- MAPA DE GEOLOCALIZACIÓN ---
-        with st.container(border=True, height=450):
-            st.markdown("**🗺️ Ubicación Geográfica**")
-            
+        st.markdown("##### 🗺️ Ubicación Geográfica")
+        with st.container(border=True):
             lat = project.get('lat', -46.5)
             lon = project.get('lon', -68.0)
             well_id = project.get('well', project.get('id', 'N/A'))
             
-            # Usar mapa de OpenStreetMap con bounding box
-            # Calcular bounding box para el zoom
             delta = 0.05
             lat_min = lat - delta
             lat_max = lat + delta
             lon_min = lon - delta
             lon_max = lon + delta
             
-            # Usar mapa estatico de Nominatim/OpenStreetMap
             st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 10px; padding: 10px;">
-                <p style="margin: 0 0 10px 0; font-weight: bold;">🗺️ Ubicación Geográfica</p>
-                <p style="margin: 0 0 5px 0;">Mapa del pozo {well_id}</p>
+                <p style="margin: 0 0 10px 0; font-weight: bold;">🗺️ Mapa del pozo {well_id}</p>
                 <iframe width="100%" height="280" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
                     src="https://www.openstreetmap.org/export/embed.html?bbox={lon_min}%2C{lat_min}%2C{lon_max}%2C{lat_max}&layer=mapnik&marker={lat}%2C{lon}" 
                     style="border-radius: 8px;">
@@ -188,15 +272,18 @@ def render_view(project_id):
             </div>
             """, unsafe_allow_html=True)
     
-    # --- Disclaimer Obligatorio (Legal) ---
+    # Disclaimer Legal
     st.markdown("""
-    <div style="background-color: #fff3cd; padding: 10px; border-radius: 5px; font-size: 0.8em; color: #856404; margin-bottom: 20px;">
+    <div style="background-color: #fff3cd; padding: 10px; border-radius: 5px; font-size: 0.8em; color: #856404; margin: 20px 0;">
         <strong>⚠️ AVISO LEGAL IMPORTANTE:</strong> Datos meteorológicos referenciales obtenidos por ubicación geográfica cercana (Open-Meteo). 
         <strong>No sustituyen mediciones onsite ni informes oficiales.</strong> El Supervisor es responsable de validar condiciones con instrumental calibrado en campo.
     </div>
     """, unsafe_allow_html=True)
     
-    # --- INFO POZO HORIZONTAL BAR ---
+
+    # ═══════════════════════════════════════════════════════════════
+    # INFO POZO HORIZONTAL BAR
+    # ═══════════════════════════════════════════════════════════════
     with st.container(border=True):
         col_hdr1, col_hdr2, col_hdr3, col_hdr4 = st.columns(4)
         col_hdr1.markdown(f"**Pozo ID:**\n{project['well']}")
