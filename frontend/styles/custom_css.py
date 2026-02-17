@@ -18,45 +18,26 @@ def load_custom_css():
         }
         
         /* ============================================ */
-        /* SELECTBOX / LOV - Tamaño consistente */
+        /* SELECTBOX / LOV - Tamaño de fuente consistente */
         /* ============================================ */
         
-        /* Selector input - tamaño base */
-        div[data-baseweb="select"] {
-            width: 100% !important;
-        }
-        
+        /* Selector input - tamaño de fuente */
         div[data-baseweb="select"] > div {
             font-size: 14px !important;
-            min-height: 42px !important;
         }
         
         /* Texto dentro del selector */
-        div[data-baseweb="select"] > div > div {
+        div[data-baseweb="select"] input {
             font-size: 14px !important;
-        }
-        
-        /* Dropdown popup - mismo ancho que selector */
-        div[data-baseweb="popover"] {
-            left: 0 !important;
-            width: 100% !important;
-        }
-        
-        div[data-baseweb="popover"] > div {
-            width: 100% !important;
         }
         
         /* Items del dropdown - mismo tamaño de fuente */
-        div[data-baseweb="select"] ul[role="listbox"] {
+        ul[role="listbox"] li {
             font-size: 14px !important;
         }
         
-        div[data-baseweb="select"] ul li {
-            font-size: 14px !important;
-            padding: 10px 14px !important;
-        }
-        
-        div[data-baseweb="select"] ul li > div {
+        ul[role="listbox"] li > div,
+        ul[role="listbox"] li span {
             font-size: 14px !important;
         }
         
