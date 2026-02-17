@@ -16,7 +16,17 @@ def load_custom_css():
         html, body, [class*="css"]  {
             font-family: 'Inter', sans-serif;
         }
-
+        
+        /* Selectbox/Dropdown - corregir posición y tamaño */
+        div[data-baseweb="select"] > div {
+            font-size: 14px !important;
+        }
+        
+        /* Popup de selectbox - abrir debajo del control */
+        div[data-baseweb="popover"] {
+            transform: translateX(0) !important;
+        }
+        
         /* Títulos con gradiente */
         h1, h2, h3 {
             background: -webkit-linear-gradient(45deg, #007bff, #00ff88);
