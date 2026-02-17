@@ -21,6 +21,14 @@ def load_custom_css():
         div[data-baseweb="select"] > div {
             font-size: 14px !important;
         }
+
+        /* LOV alignment adjustments */
+        div[data-baseweb="select"] {
+            width: 100% !important;
+        }
+        div[data-baseweb="popover"] {
+            left: 0 !important;
+        }
         
         /* LOV alignment adjustments */
         div[data-baseweb="select"] {
