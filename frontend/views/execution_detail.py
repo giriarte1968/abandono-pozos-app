@@ -167,12 +167,23 @@ def render_view(project_id):
             lon = project.get('lon', -68.0)
             well_id = project.get('well', project.get('id', 'N/A'))
             
-            # Usar mapa estatico de OpenStreetMap como primary
+            # Usar mapa de OpenStreetMap con bounding box
+            # Calcular bounding box para el zoom
+            delta = 0.05
+            lat_min = lat - delta
+            lat_max = lat + delta
+            lon_min = lon - delta
+            lon_max = lon + delta
+            
+            # Usar mapa estatico de Nominatim/OpenStreetMap
             st.markdown(f"""
-            <div style="background-color: #1e1e1e; border-radius: 10px; padding: 10px; text-align: center;">
-                <img src="https://staticmap.openstreetmap.de/staticmap.php?center={lat},{lon}&zoom=12&size=500x280&markers={lat},{lon},red-pushpin" 
-                     style="width: 100%; border-radius: 8px;" 
-                     alt="Mapa del pozo {well_id}">
+            <div style="background-color: #1e1e1e; border-radius: 10px; padding: 10px;">
+                <p style="margin: 0 0 10px 0; font-weight: bold;">🗺️ Ubicación Geográfica</p>
+                <p style="margin: 0 0 5px 0;">Mapa del pozo {well_id}</p>
+                <iframe width="100%" height="280" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+                    src="https://www.openstreetmap.org/export/embed.html?bbox={lon_min}%2C{lat_min}%2C{lon_max}%2C{lat_max}&layer=mapnik&marker={lat}%2C{lon}" 
+                    style="border-radius: 8px;">
+                </iframe>
                 <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">📍 {well_id} | Lat: {lat}, Lon: {lon}</p>
             </div>
             """, unsafe_allow_html=True)
