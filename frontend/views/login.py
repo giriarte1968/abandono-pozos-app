@@ -3,18 +3,20 @@ import base64
 import os
 from services.auth_service import AuthService
 
-def get_base64_of_bin_file(bin_file):
-    """Lee un archivo binario y devuelve la cadena base64 para incrustar en CSS."""
-    try:
-        with open(bin_file, 'rb') as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-    except FileNotFoundError:
-        return None
+def get_base64_cached(file_path):
+    """Cachea el base64 en session_state para evitar recodificar en cada render."""
+    cache_key = f"bg_base64_{file_path}"
+    if cache_key not in st.session_state:
+        try:
+            with open(file_path, 'rb') as f:
+                st.session_state[cache_key] = base64.b64encode(f.read()).decode()
+        except FileNotFoundError:
+            st.session_state[cache_key] = None
+    return st.session_state[cache_key]
 
 def set_png_as_page_bg(png_file):
     """Establece una imagen local como fondo de pantalla completo."""
-    bin_str = get_base64_of_bin_file(png_file)
+    bin_str = get_base64_cached(png_file)
     if bin_str:
         page_bg_img = f'''
         <style>
