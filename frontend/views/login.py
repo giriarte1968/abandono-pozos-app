@@ -105,7 +105,6 @@ def render_view():
         st.write("")
         
         user = st.text_input("USER", label_visibility="collapsed", placeholder="USUARIO")
-        password = st.text_input("PASS", type="password", label_visibility="collapsed", placeholder="CONTRASEÑA (OPCIONAL)")
         
         st.write("")
         if st.button("INGRESAR", use_container_width=True):
@@ -113,7 +112,6 @@ def render_view():
                 st.error("Por favor, ingrese un usuario.")
             else:
                 auth_service = AuthService()
-                # El password ya no se valida en el servicio
                 user_data = auth_service.authenticate(user, "")
                 
                 if user_data:
@@ -124,6 +122,7 @@ def render_view():
                     st.success(f"Bienvenido {user_data['nombre_completo']}")
                     st.rerun()
                 else:
-                    st.error("Usuario no encontrado en la base de datos.")
+                    st.error("Usuario no encontrado. Prueba: admin, sebastian.cannes, juan.supervisor")
 
+        st.markdown("<div style='text-align: center; color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-top: 15px;'>Usuarios: admin, sebastian.cannes, juan.supervisor, demo.user</div>", unsafe_allow_html=True)
         st.markdown("<div style='text-align: center; color: rgba(255,255,255,0.3); font-size: 0.7rem; margin-top: 25px;'>© 2026 AbandonPro V1.0</div>", unsafe_allow_html=True)
