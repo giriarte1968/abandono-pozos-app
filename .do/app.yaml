@@ -12,17 +12,20 @@ services:
     source_dir: /
     dockerfile_path: Dockerfile
     
-    # Recursos
-    instance_size_slug: basic-xs  # $6/mes - 512MB RAM, 1 CPU
+    # Recursos - 1GB RAM para Streamlit (era basic-xs con 512MB)
+    instance_size_slug: basic-s  # $12/mes - 1GB RAM, 1 CPU
     instance_count: 1
     
     # Puerto HTTP
     http_port: 8501
     
-    # Health check
+    # Health check - mantiene la app caliente
     health_check:
       http_path: /_stcore/health
       port: 8501
+      initial_delay_seconds: 30
+      period_seconds: 30
+      timeout_seconds: 10
     
     # Variables de entorno
     envs:
