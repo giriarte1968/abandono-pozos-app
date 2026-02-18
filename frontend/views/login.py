@@ -89,10 +89,10 @@ def render_view():
     """
     Vista de Login (Landing Page) con Imagen de Fondo Full Screen.
     """
-    # 1. Configurar Fondo
-    bg_file = "frontend/assets/landing_bg.jpg"
+    # 1. Configurar Fondo (preferir WebP por menor tamaño)
+    bg_file = "frontend/assets/landing_bg.webp"
     if not os.path.exists(bg_file):
-        bg_file = "frontend/assets/landing_bg.png"
+        bg_file = "frontend/assets/landing_bg.jpg"
     
     set_png_as_page_bg(bg_file)
 
