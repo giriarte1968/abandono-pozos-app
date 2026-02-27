@@ -41,12 +41,13 @@ La aplicación estará disponible en: http://localhost:8501
 - **Cálculo de rentabilidad**: Ingresos vs costos operativos
 - **Sincronización bidireccional**: Estado de pozos entre operaciones y finanzas
 
-#### 💡 Chat AI con Recomendaciones
+#### 💡 Asistente AI (Mistral/Gemini)
 El asistente virtual ofrece:
 - **Análisis de situación dual**: Operativo + Financiero
 - **Recomendaciones inteligentes**: Basadas en datos reales
-- **Alertas proactivas**: Facturas vencidas, márgenes bajos, backlog crítico
-- **Modo offline**: Funciona sin API de Gemini usando motor de reglas
+- **Expert System Prompt**: Rol de Ingeniero Petróleo Senior especializado en P&A.
+- **Cascada de Modelos**: Mistral (principal) → Gemini (fallback) → Offline (motor de reglas).
+- **Reducción de latencia**: Optimizado para respuestas rápidas.
 
 ### Datos de Ejemplo (Mock)
 
@@ -137,27 +138,29 @@ Crear archivo `.env`:
 GEMINI_API_KEY=tu_api_key_aqui
 ```
 
-> **Nota**: Si no se configura API Key, el sistema funciona en modo offline con motor de reglas.
+> **Nota**: Si no se configura API Key (Gemini/OpenRouter), el sistema funciona en modo offline con motor de reglas.
 
 ### Roles de Usuario
+El sistema utiliza un login simplificado (sin contraseña) para facilitar las pruebas:
+- **admin**: Acceso total operativo y financiero
+- **sebastian.cannes**: Gerente / Proyecto
+- **juan.supervisor**: Supervisor de Campo
+- **demo.user**: Perfil HSE / Calidad
 
-- **Gerente**: Acceso total operativo y financiero
-- **Administrativo**: Acceso a datos maestros y finanzas
-- **Finanzas**: Acceso exclusivo al módulo financiero
-- **HSE/Supervisor**: Acceso operativo limitado
+## ☁️ Infraestructura & Despliegue
 
-## ☁️ Infraestructura Podman (Producción)
+### Producción (DigitalOcean)
+La app está configurada para DigitalOcean App Platform con optimizaciones:
+- **RAM**: 1GB (Basic-S) para mejor rendimiento de Streamlit.
+- **Healthchecks**: Monitoreo activo cada 30s.
+- **Optimización**: Imágenes WebP y cacheo global de assets.
 
-### Iniciar Stack Completo
+### Local (Docker)
+Inicia el stack completo incluyendo Temporal y MySQL:
 
 ```powershell
-# Windows
-podman machine init
-podman machine start
-pip install podman-compose
-
-cd C:\Users\Gustavo\.gemini\antigravity\scratch
-podman-compose -f podman-compose.yml up -d
+# Iniciar stack
+docker compose up -d
 ```
 
 ### Servicios
@@ -169,9 +172,10 @@ podman-compose -f podman-compose.yml up -d
 
 ## 📚 Documentación Adicional
 
-- **PODMAN_SETUP.md**: Guía completa de instalación
-- **db/migrations/**: Schema de base de datos
-- **frontend/services/**: Servicios mock con lógica de negocio
+- **DOCKER_SETUP.md**: Guía completa de instalación local
+- **DEPLOY_DIGITALOCEAN.md**: Guía de despliegue en la nube
+- **force_restore_temporal_v2.sh**: Recuperación de estado de Temporal
+- **deep_verify.sh**: Script de validación integral del sistema
 
 ## 🎯 Roadmap
 
@@ -179,9 +183,9 @@ podman-compose -f podman-compose.yml up -d
 - [x] Integración Operaciones ↔ Finanzas
 - [x] Chat AI con análisis dual (operativo + financiero)
 - [x] Sistema de recomendaciones automáticas
+- [x] Optimización de assets (WebP) y performance
 - [ ] Integración con sistemas externos (SAP, Bancos)
 - [ ] Reportes automatizados por email
-- [ ] Workflow de aprobaciones financieras
 
 ## 👥 Equipo
 
@@ -189,4 +193,4 @@ Desarrollado por giriarte1968.
 
 ---
 
-**Versión**: 2.1.0 | **Estado**: Dev/Mock Mode | **Última actualización**: 2025-02-14
+**Versión**: 2.2.0 | **Estado**: Dev/Mock Mode | **Última actualización**: 2026-02-19

@@ -53,7 +53,7 @@ services:
     networks:
       - pna-network
 
-  # Python Worker (OCI ARM64 compliant)
+  # Python Worker
   worker:
     build:
       context: .
@@ -79,7 +79,7 @@ services:
       - ./tests:/app/tests:ro,Z
     command: python -m backend.worker
 
-  # Streamlit Frontend (OCI ARM64 compliant)
+  # Streamlit Frontend
   frontend:
     build:
       context: .

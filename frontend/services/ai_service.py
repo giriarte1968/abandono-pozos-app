@@ -100,7 +100,7 @@ class AIService:
                     "X-Title": "AbandonPro"
                 },
                 json={
-                    "model": "mistralai/mistral-7b-instruct",
+                    "model": "deepseek/deepseek-chat",
                     "messages": [{"role": "user", "content": full_prompt}],
                     "max_tokens": 600
                 },

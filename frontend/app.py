@@ -1,8 +1,17 @@
 import streamlit as st
+import os
 from dotenv import load_dotenv
 
-# Cargar variables de entorno antes de cualquier otra cosa
-load_dotenv()
+# Cargar variables de entorno desde la raíz del proyecto
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(project_root, ".env"))
+
+# Debug: Verificar si se cargó la API Key
+if os.getenv("GEMINI_API_KEY"):
+    print("✅ GEMINI_API_KEY cargada correctamente")
+else:
+    print("⚠️ GEMINI_API_KEY NO encontrada en variables de entorno")
+
 from components.sidebar import render_sidebar
 from views import login, dashboard, project_list, execution_detail
 from services.mock_api_client import MockApiClient

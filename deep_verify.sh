@@ -1,26 +1,23 @@
-cat > deep_verify.sh << 'EOF'
 #!/bin/bash
 
-echo "=== 1. Verificar UPTIME (¿Se está reiniciando?) ==="
-podman ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Created}}" | grep -E "worker|temporal"
+echo "=== 1. Verificar UPTIME (Contenedoresactivos) ==="
+docker compose ps
 
 echo ""
-echo "=== 2. Verificar Puertos en el POD ==="
-# Ejecutamos netstat dentro de Temporal para ver si 7233 está escuchando
-# Usamos braco_temporal_1 porque sabemos que tiene las herramientas o al menos es el dueño del puerto
-echo "Listando puertos escuchando en el contenedor Temporal:"
-podman exec braco_temporal_1 netstat -tulpn | grep 7233
+echo "=== 2. Verificar Puertos en Temporal ==="
+echo "Listando puertos escuchando en el contenedor Temporal (7233):"
+docker compose exec temporal netstat -tulpn 2>/dev/null | grep 7233 || echo "Netstat no disponible, verificando vía socket..."
 
 echo ""
 echo "=== 3. Test de Conexión Python desde WORKER ==="
-# Inyectamos un pequeño script python en el worker para probar conexión explícita
-echo "Probando conexión TCP a 127.0.0.1:7233 desde dentro del Worker..."
-podman exec braco_worker_sidecar python -c "
+echo "Probando conexión TCP a temporal:7233 desde dentro del Worker..."
+docker compose exec worker python -c "
 import socket
 import sys
 try:
-    s = socket.create_connection(('127.0.0.1', 7233), timeout=5)
-    print('✅ CONEXIÓN TCP EXITOSA a 127.0.0.1:7233')
+    # Usamos 'temporal' como host porque estamos en la red de docker compose
+    s = socket.create_connection(('temporal', 7233), timeout=5)
+    print('✅ CONEXIÓN TCP EXITOSA a temporal:7233')
     s.close()
 except Exception as e:
     print(f'❌ ERROR DE CONEXIÓN: {e}')
@@ -28,9 +25,5 @@ except Exception as e:
 "
 
 echo ""
-echo "=== 4. Logs MÁS recientes del Worker (últimas 5 líneas) ==="
-podman logs --tail 5 braco_worker_sidecar
-EOF
-
-chmod +x deep_verify.sh
-./deep_verify.sh
+echo "=== 4. Logs MÁS recientes del Worker (últimas 10 líneas) ==="
+docker compose logs --tail 10 worker

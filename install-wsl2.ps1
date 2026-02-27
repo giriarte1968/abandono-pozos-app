@@ -1,7 +1,7 @@
-# WSL2 Installation Script for Podman
+# WSL2 Installation Script for Docker
 # Run this script as Administrator
 
-Write-Host "=== Installing WSL2 for Podman ===" -ForegroundColor Green
+Write-Host "=== Installing WSL2 for Docker ===" -ForegroundColor Green
 Write-Host ""
 
 # Check if running as Administrator
@@ -30,7 +30,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "1. Restart your computer NOW" -ForegroundColor Yellow
     Write-Host "2. After restart, Ubuntu will install automatically" -ForegroundColor Yellow
     Write-Host "3. Create a username and password when prompted" -ForegroundColor Yellow
-    Write-Host "4. Then run: podman machine init" -ForegroundColor Yellow
+    Write-Host "4. Then install and run Docker Desktop" -ForegroundColor Yellow
     Write-Host ""
     
     $restart = Read-Host "Do you want to restart now? (Y/N)"

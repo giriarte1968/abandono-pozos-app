@@ -62,8 +62,8 @@ GEMINI_API_KEY=tu_api_key_de_google_aqui
    - Agrega: `GEMINI_API_KEY` (como secreto)
 
 5. **Elegir Plan**:
-   - **Basic**: $5/mes (512MB RAM, 1 CPU) - Para pruebas
-   - **Professional**: $12/mes (1GB RAM, 1 CPU) - Recomendado para producción
+   - **Basic**: $10/mes (1GB RAM, 1 CPU) - **Mínimo recomendado** para Streamlit + AI
+   - **Professional**: $12/mes (1GB RAM, 1 CPU) - Con soporte para backup y más recursos
 
 6. **Deploy**:
    - Click "Create Resources"
@@ -96,12 +96,12 @@ GEMINI_API_KEY=tu_api_key_de_google_aqui
 
 | Recurso | Costo Mensual |
 |---------|---------------|
-| Basic (512MB RAM) | $5 USD |
+| Basic-S (1GB RAM) | $10 USD |
 | Professional (1GB RAM) | $12 USD |
 | Professional (2GB RAM) | $24 USD |
 | Dominio personalizado | $0-12 USD/año |
 
-**Total mínimo**: $5-12 USD/mes
+**Total mínimo**: $10-12 USD/mes
 
 ## 🔧 Configuración Post-Deploy
 
@@ -178,7 +178,7 @@ docker run -p 8501:8501 abandonpro:test
 ### Error: "App unhealthy"
 - Verificar que `frontend/app.py` existe
 - Verificar que el puerto 8501 está expuesto
-- Verificar el health check en el Dockerfile
+- La app tiene un healthcheck cada 30s con un timeout de 5s. Verifica los logs si falla.
 
 ### Error: "Module not found"
 - Asegúrate de que todas las dependencias están en `requirements.txt`
