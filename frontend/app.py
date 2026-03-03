@@ -118,6 +118,10 @@ def main_router():
         from views import admin_financial_master_data
         admin_financial_master_data.render_view()
         
+    elif page == 'Capacidad Contrato':
+        from views import capacidad_contrato_view
+        capacidad_contrato_view.render_view()
+        
     else:
         st.warning(f"Página no encontrada: {page}")
 
