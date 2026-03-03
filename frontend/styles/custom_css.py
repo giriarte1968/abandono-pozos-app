@@ -81,6 +81,12 @@ def load_custom_css():
             border: 1px solid #333;
             transition: transform 0.2s;
         }
+
+        /* Estilo específico para métricas (azul sutil + acento) */
+        div[data-testid="stMetric"] {
+            background: linear-gradient(135deg, #1a1a2e 0%, #25253d 100%) !important;
+            border-left: 3px solid rgba(59, 130, 246, 0.45) !important;
+        }
         
         div[data-testid="stMetric"]:hover {
             transform: translateY(-2px);

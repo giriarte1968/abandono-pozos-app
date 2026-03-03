@@ -101,7 +101,19 @@ def render_view():
     col1, col2, col3 = st.columns([1.2, 1, 1.2])
     
     with col2:
-        st.markdown("<div style='text-align: center;'><span style='font-size: 28px; font-weight: bold;'>AbandonPro</span> <span style='font-size: 14px; font-weight: 200; letter-spacing: 2px;'>V1.0</span></div>", unsafe_allow_html=True)
+        # Logo con Braco (base64 para performance)
+        logo_path = "frontend/assets/braco_logo.jpeg"
+        logo_b64 = get_base64_cached(logo_path)
+        if logo_b64:
+            st.markdown(f"""
+                <div style='text-align: center; margin-bottom: 20px;'>
+                    <img src='data:image/jpeg;base64,{logo_b64}' style='width: 280px; filter: drop-shadow(0px 0px 8px rgba(255,255,255,0.2));'>
+                    <br><span style='font-size: 14px; font-weight: 200; letter-spacing: 2px; color: rgba(255,255,255,0.6);'>V1.0</span>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("<div style='text-align: center;'><span style='font-size: 28px; font-weight: bold;'>AbandonPro</span> <span style='font-size: 14px; font-weight: 200; letter-spacing: 2px;'>V1.0</span></div>", unsafe_allow_html=True)
+        
         st.write("")
         
         user = st.text_input("USER", label_visibility="collapsed", placeholder="USUARIO")
