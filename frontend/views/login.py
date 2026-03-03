@@ -104,7 +104,7 @@ def render_view():
         if logo_b64:
             st.markdown(f"""
                 <div style='text-align: center; margin-bottom: 25px;'>
-                    <img src='data:image/jpeg;base64,{logo_b64}' style='width: 260px;'>
+                    <img src='data:image/jpeg;base64,{logo_b64}' style='width: 208px;'>
                     <br><span style='font-size: 13px; font-weight: 500; letter-spacing: 1px; color: rgba(255,255,255,0.7) !important;'>V 1.0</span>
                 </div>
             """, unsafe_allow_html=True)
