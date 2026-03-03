@@ -2,6 +2,21 @@ import os
 import requests
 from datetime import datetime
 
+# Importación lazy de servicios para evitar imports circulares
+def _get_financial_service():
+    try:
+        from services.financial_service_mock import financial_service
+        return financial_service
+    except Exception:
+        return None
+
+def _get_api_client():
+    try:
+        from services.mock_api_client import MockApiClient
+        return MockApiClient()
+    except Exception:
+        return None
+
 try:
     import google.genai as genai
     USE_NEW_PACKAGE = True
@@ -40,8 +55,15 @@ SYSTEM_PROMPT = """Eres **AbandonPro AI**, un Ingeniero en Petróleo Senior con 
 4. **Concisión**: Respuestas directas, máximo 3 párrafos salvo que se requiera más detalle
 5. **Formato**: Usa Markdown, bullet points, y tablas cuando sea útil
 
-## Información del Contexto Operativo
-El sistema te proporciona datos en tiempo real de pozos, equipos, personal, logística y finanzas. Úsalos para respuestas contextuales precisas."""
+## 🚨 REGLA CRÍTICA ANTI-ALUCINACIÓN 🚨
+
+El sistema te provee un bloque de DATOS REALES DEL SISTEMA en cada consulta.
+**NUNCA inventes, supongas ni completes datos que no estén en ese bloque.**
+- Si te preguntan sobre un contrato → solo usa los contratos listados en DATOS REALES.
+- Si te preguntan sobre un pozo → solo usa los pozos listados en DATOS REALES.
+- Si te preguntan sobre montos, IDs, casings, garantías, o cualquier dato específico que NO está en DATOS REALES → responde: "No tengo ese dato en el sistema actual."
+- **Nunca inventes IDs de pozos, montos, términos contractuales ni referencias normativas específicas.**"""
+
 
 class AIService:
     """
@@ -156,16 +178,82 @@ class AIService:
         return self._offline_response(user_query, project_context, user_role)
 
     def _build_context(self, ctx):
-        if not ctx:
-            return "CONTEXTO: Pregunta general sin proyecto activo."
-        
-        return f"""CONTEXTO OPERATIVO ACTUAL:
-- Pozo: {ctx.get('name', 'N/A')} (ID: {ctx.get('id', 'N/A')})
-- Yacimiento: {ctx.get('yacimiento', 'N/A')}
-- Estado: {ctx.get('status', 'N/A')}
-- Progreso: {ctx.get('progreso', 0)}%
-- Personal: {len(ctx.get('personnel_list', []))} personas
-- Equipos: {len(ctx.get('equipment_list', []))} en locación"""
+        """
+        Construye el contexto de datos REALES para el LLM.
+        Inyecta contratos, pozos, personal y equipos actuales del sistema
+        para evitar alucinaciones con datos inventados.
+        """
+        lines = ["=== DATOS REALES DEL SISTEMA (USA SOLO ESTOS, NO INVENTES) ==="]
+
+        # --- CONTRATOS ---
+        try:
+            fin = _get_financial_service()
+            if fin:
+                contratos = fin.get_contratos()
+                lines.append("\n## CONTRATOS ACTIVOS:")
+                for c in contratos:
+                    pozos_str = ", ".join(c.get('pozos_asignados', []))
+                    lines.append(
+                        f"  - [{c['ID_CONTRATO']}] {c['NOMBRE_CONTRATO']} | Cliente: {c['CLIENTE']} "
+                        f"| Pozos: {c['CANTIDAD_POZOS']} ({pozos_str}) "
+                        f"| Valor unitario: USD {c['VALOR_UNITARIO_BASE_USD']:,.0f} "
+                        f"| Monto total: USD {c['MONTO_TOTAL_CONTRACTUAL']:,.0f} "
+                        f"| Backlog: USD {c['BACKLOG_RESTANTE']:,.0f} "
+                        f"| Pago: {c['PLAZO_PAGO_DIAS']} días | Estado: {c['ESTADO']}"
+                    )
+                certificaciones = fin.get_certificaciones()
+                lines.append("\n## CERTIFICACIONES:")
+                for cert in certificaciones:
+                    lines.append(
+                        f"  - Cert #{cert['ID_CERTIFICACION']}: Pozo {cert['ID_WELL']} ({cert['WELL_NAME']}) "
+                        f"| Monto: USD {cert['MONTO_CERTIFICADO']:,.0f} "
+                        f"| Estado: {cert['ESTADO']}"
+                    )
+        except Exception as e:
+            lines.append(f"  (Error al cargar datos financieros: {e})")
+
+        # --- POZOS OPERATIVOS ---
+        try:
+            api = _get_api_client()
+            if api:
+                pozos = api.get_all_wells()
+                lines.append("\n## POZOS OPERATIVOS:")
+                for p in pozos:
+                    lines.append(
+                        f"  - {p['id']} | {p['nombre']} | Yacimiento: {p['yacimiento']} "
+                        f"| Estado: {p['estado_proyecto']} | Progreso: {p['progreso']}% "
+                        f"| Próximo hito: {p.get('proximo_hito', 'N/A')} "
+                        f"| Cliente: {p.get('cliente', 'N/A')}"
+                    )
+                # Personal y Equipos
+                personal = api.get_master_personnel()
+                lines.append("\n## PERSONAL EN CATÁLOGO:")
+                for per in personal:
+                    nombre = per.get('nombre_completo') or per.get('name', 'N/A')
+                    rol = per.get('rol_principal') or per.get('role', 'N/A')
+                    lines.append(f"  - {nombre} | Rol: {rol}")
+
+                equipos = api.get_master_equipment()
+                lines.append("\n## EQUIPOS EN CATÁLOGO:")
+                for eq in equipos:
+                    nombre = eq.get('nombre_equipo') or eq.get('name', 'N/A')
+                    tipo = eq.get('tipo_equipo') or eq.get('type', 'N/A')
+                    estado = eq.get('status', 'N/A')
+                    lines.append(f"  - {nombre} | Tipo: {tipo} | Estado: {estado}")
+        except Exception as e:
+            lines.append(f"  (Error al cargar datos operativos: {e})")
+
+        # --- CONTEXTO DE POZO ACTIVO (si hay uno seleccionado) ---
+        if ctx:
+            lines.append("\n## POZO ACTIVO EN PANTALLA:")
+            lines.append(
+                f"  Nombre: {ctx.get('name', 'N/A')} (ID: {ctx.get('id', 'N/A')}) "
+                f"| Yacimiento: {ctx.get('yacimiento', 'N/A')} "
+                f"| Estado: {ctx.get('status', 'N/A')} | Progreso: {ctx.get('progreso', 0)}%"
+            )
+
+        lines.append("\n=== FIN DE DATOS REALES. NUNCA inventes datos que no estén aquí. ===")
+        return "\n".join(lines)
 
     def _build_history(self, chat_history):
         if not chat_history:
