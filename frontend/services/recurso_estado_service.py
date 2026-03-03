@@ -45,8 +45,101 @@ class RecursoEstadoService:
                 self.mock_data = []
         else:
             self.mock_data = []
-
-    def _persist_mock(self):
+            
+        # Si sigue vacío (primera ejecución o sin archivo), generamos datos de simulación
+        # extraídos orgánicamente de MockApiClient para dar sensación de MVP vivo.
+        if not self.mock_data:
+            self._generate_initial_simulation()
+            
+    def _generate_initial_simulation(self):
+        """Genera datos de simulación iniciales basados en MockApiClient."""
+        from services.mock_api_client import MockApiClient
+        api = MockApiClient()
+        today_str = date.today().isoformat()
+        
+        # Iteramos sobre los proyectos para simular estados coherentes
+        pozos = api.get_all_wells()
+        for pozo in pozos:
+            detail = api.get_project_detail(pozo['id'])
+            if not detail: continue
+            
+            estado_proj = pozo['estado_proyecto']
+            
+            # Simulamos Equipos
+            for eq in detail.get('equipment_list', []):
+                # Determinar estado en base a la info del proyecto
+                if eq.get('status') == 'FALLA CRITICA':
+                    estado_op = 'MANTENIMIENTO'
+                elif eq.get('is_on_location', False):
+                    estado_op = 'ACTIVO'
+                elif eq.get('assigned', False):
+                    estado_op = 'ASIGNADO'
+                else:
+                    estado_op = 'STANDBY'
+                    
+                self.mock_data.append({
+                    'id_estado': len(self.mock_data) + 1,
+                    'id_recurso': eq['name'], # Equipos en el mock usan nombre como ID visual
+                    'tipo_recurso': 'EQUIPO',
+                    'fecha': today_str,
+                    'estado_operativo': estado_op,
+                    'id_pozo': pozo['id'] if estado_op in ['ACTIVO', 'ASIGNADO'] else None,
+                    'observaciones': 'Autogenerado por simulación MVP' if estado_op == 'MANTENIMIENTO' else '',
+                    'ts_creacion': datetime.now().isoformat()
+                })
+                
+            # Simulamos Personal
+            for p in detail.get('personnel_list', []):
+                # Determinar estado
+                if not p.get('medical_ok', True) or not p.get('induction_ok', True):
+                    estado_op = 'LICENCIA'
+                elif p.get('present', False) and estado_proj in ['EN_EJECUCION', 'BLOQUEADO']:
+                    estado_op = 'ACTIVO'
+                else:
+                    estado_op = 'STANDBY'
+                    
+                # Buscar ID real si existe en el maestro, sino usar nombre
+                recurso_id = p.get('name', 'Desconocido')
+                
+                self.mock_data.append({
+                    'id_estado': len(self.mock_data) + 1,
+                    'id_recurso': recurso_id,
+                    'tipo_recurso': 'PERSONAL',
+                    'fecha': today_str,
+                    'estado_operativo': estado_op,
+                    'id_pozo': pozo['id'] if estado_op == 'ACTIVO' else None,
+                    'observaciones': 'Bloqueado por HSE' if estado_op == 'LICENCIA' else '',
+                    'ts_creacion': datetime.now().isoformat()
+                })
+        
+        # Añadir algunos en Standby desde el catálogo que no están asignados
+        for m_eq in api.get_master_equipment():
+            if not any(r['id_recurso'] == m_eq['name'] for r in self.mock_data):
+                self.mock_data.append({
+                    'id_estado': len(self.mock_data) + 1,
+                    'id_recurso': m_eq['name'],
+                    'tipo_recurso': 'EQUIPO',
+                    'fecha': today_str,
+                    'estado_operativo': 'STANDBY',
+                    'id_pozo': None,
+                    'observaciones': '',
+                    'ts_creacion': datetime.now().isoformat()
+                })
+                
+        for m_pe in api.get_master_personnel():
+            if not any(r['id_recurso'] == m_pe['name'] for r in self.mock_data):
+                self.mock_data.append({
+                    'id_estado': len(self.mock_data) + 1,
+                    'id_recurso': m_pe['name'],
+                    'tipo_recurso': 'PERSONAL',
+                    'fecha': today_str,
+                    'estado_operativo': 'STANDBY',
+                    'id_pozo': None,
+                    'observaciones': '',
+                    'ts_creacion': datetime.now().isoformat()
+                })
+        
+        self._persist_mock()
         os.makedirs(os.path.dirname(self.persistence_file), exist_ok=True)
         with open(self.persistence_file, 'w') as f:
             json.dump(self.mock_data, f, indent=2)
