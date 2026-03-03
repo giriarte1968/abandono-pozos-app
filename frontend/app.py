@@ -2,28 +2,23 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
-# Cargar variables de entorno desde la raíz del proyecto
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(project_root, ".env"))
-
-# Debug: Verificar si se cargó la API Key
-if os.getenv("GEMINI_API_KEY"):
-    print("✅ GEMINI_API_KEY cargada correctamente")
-else:
-    print("⚠️ GEMINI_API_KEY NO encontrada en variables de entorno")
-
-from components.sidebar import render_sidebar
-from views import login, dashboard, project_list, execution_detail
-from services.mock_api_client import MockApiClient
-from styles.custom_css import load_custom_css
-
-# Configuración de página - Debe ser lo primero
+# Configuración de página - Debe ser lo primero (Streamlit rule)
 st.set_page_config(
     page_title="Sistema P&A - SureOil",
     page_icon="🛢️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Cargar variables de entorno desde la raíz del proyecto
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(project_root, ".env"))
+
+# Debug: Verificar si se cargó la API Key
+if os.getenv("GEMINI_API_KEY"):
+    pass # print("✅ GEMINI_API_KEY cargada correctamente")
+else:
+    print("⚠️ GEMINI_API_KEY NO encontrada en variables de entorno")
 
 def init_session_state():
     """Inicializa variables de sesión si no existen."""
@@ -34,39 +29,45 @@ def init_session_state():
     if 'selected_project_id' not in st.session_state:
         st.session_state['selected_project_id'] = None
     if 'api_client' not in st.session_state:
+        from services.mock_api_client import MockApiClient
         st.session_state['api_client'] = MockApiClient()
 
 def main_router():
     """
     Router Principal de la Aplicación.
     Controla qué vista se renderiza basado en el estado de la sesión.
-    NO contiene lógica de negocio, solo switch de navegación.
     """
     role = st.session_state.get('user_role')
     page = st.session_state.get('current_page')
 
     # 1. Si no hay usuario logueado, forzar Login
     if not role:
+        from views import login
         login.render_view()
         return
 
     # Inyectar CSS global
+    from styles.custom_css import load_custom_css
     load_custom_css()
 
     # 2. Renderizar Sidebar Común (Navegación)
+    from components.sidebar import render_sidebar
     render_sidebar()
 
     # 3. Router de Vistas
     if page == 'Dashboard':
+        from views import dashboard
         dashboard.render_view()
     
     elif page == 'Proyectos':
+        from views import project_list
         project_list.render_view()
     
     elif page == 'Detalle Proyecto':
         # Validar que tengamos un ID seleccionado
         project_id = st.session_state.get('selected_project_id')
         if project_id:
+            from views import execution_detail
             execution_detail.render_view(project_id)
         else:
             st.error("Error de Navegación: No se seleccionó ningún proyecto.")
@@ -126,8 +127,6 @@ def main_router():
         st.warning(f"Página no encontrada: {page}")
 
     # 4. Renderizar Chat Flotante Global
-    # Lo renderizamos dentro del Sidebar para evitar que ocupe espacio en el layout principal
-    # al cargar, evitando el "salto" visual. CSS fixed lo posicionará en la pantalla.
     with st.sidebar:
         from components.chat import render_chat
         render_chat()
