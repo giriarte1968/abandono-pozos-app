@@ -21,8 +21,9 @@ def set_background(png_file):
     page_bg_style = f'''
     <style>
     .stApp {{
+        background-color: #f0f2f6;
         background-image: url("data:image/png;base64,{bin_str}");
-        background-size: cover;
+        background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
