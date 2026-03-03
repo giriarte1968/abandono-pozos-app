@@ -12,71 +12,84 @@ def get_base64_cached(file_path):
     except FileNotFoundError:
         return None
 
-def set_white_bg():
-    """Establece un fondo blanco limpio y ajusta colores de texto para legibilidad."""
-    page_bg_style = '''
+def set_background(png_file):
+    """Establece una imagen local como fondo y ajusta estilos para legibilidad."""
+    bin_str = get_base64_cached(png_file)
+    if not bin_str:
+        return
+        
+    page_bg_style = f'''
     <style>
-    .stApp {
-        background-color: #FFFFFF !important;
+    .stApp {{
+        background-image: url("data:image/png;base64,{bin_str}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
         zoom: 90%;
-    }
+    }}
     
-    /* Contenedor de Login: Fondo claro con sombra suave */
-    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {
-        background-color: #f8f9fa !important;
+    /* Hacer transparente el contenedor principal para ver el fondo */
+    [data-testid="stAppViewContainer"] > .main {{
+        background-color: transparent;
+    }}
+
+    /* Contenedor de Login: Glassmorphism */
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {{
+        background-color: rgba(0, 0, 0, 0.45) !important;
         padding: 30px 40px !important;
-        border-radius: 12px !important;
-        border: 1px solid #dee2e6 !important;
+        border-radius: 20px !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         max-width: 340px !important;
         margin: auto !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
-    }
+        backdrop-filter: blur(15px) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+    }}
     
     /* Campos de Input */
-    div[data-baseweb="input"], div[data-baseweb="select"], .stSelectbox div, .stTextInput div {
-        background-color: #FFFFFF !important;
-        border-color: #ced4da !important;
-        color: #212529 !important;
-    }
+    div[data-baseweb="input"], div[data-baseweb="select"], .stSelectbox div, .stTextInput div {{
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+    }}
     
-    input {
-        color: #212529 !important;
-    }
+    input {{
+        color: white !important;
+    }}
     
     /* Botón */
-    .stButton button {
-        background-color: #007bff !important;
-        border: none !important;
+    .stButton button {{
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
         color: white !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
+        border-radius: 10px !important;
         transition: 0.3s !important;
-    }
-    .stButton button:hover {
-        background-color: #0056b3 !important;
-        transform: translateY(-1px);
-    }
+    }}
+    .stButton button:hover {{
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        border-color: white !important;
+    }}
 
     /* Ocultar elementos de Streamlit */
-    header {visibility: hidden;}
-    #MainMenu {visibility: hidden; font-size: 0;}
-    footer {visibility: hidden;}
+    header {{visibility: hidden;}}
+    #MainMenu {{visibility: hidden; font-size: 0;}}
+    footer {{visibility: hidden;}}
 
-    /* Textos Oscuros para fondo blanco */
-    h1, h2, h3, p, label, span {
-        color: #212529 !important;
+    /* Textos Blancos para fondo de imagen */
+    h1, h2, h3, p, label, span {{
+        color: white !important;
         text-align: center !important;
         font-family: 'Inter', sans-serif !important;
-    }
+    }}
     </style>
     '''
     st.markdown(page_bg_style, unsafe_allow_html=True)
 
 def render_view():
     """
-    Vista de Login (Landing Page) con Fondo Blanco.
+    Vista de Login (Landing Page) con Fondo de Imagen.
     """
-    set_white_bg()
+    set_background("frontend/assets/landing_bg.jpg")
 
     # 2. Espaciador Vertical
     st.markdown("<br><br><br><br>", unsafe_allow_html=True)
@@ -92,11 +105,11 @@ def render_view():
             st.markdown(f"""
                 <div style='text-align: center; margin-bottom: 25px;'>
                     <img src='data:image/jpeg;base64,{logo_b64}' style='width: 260px;'>
-                    <br><span style='font-size: 13px; font-weight: 500; letter-spacing: 1px; color: #6c757d !important;'>V 1.0</span>
+                    <br><span style='font-size: 13px; font-weight: 500; letter-spacing: 1px; color: rgba(255,255,255,0.7) !important;'>V 1.0</span>
                 </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown("<div style='text-align: center;'><span style='font-size: 28px; font-weight: bold; color: #212529;'>AbandonPro</span> <br><span style='font-size: 13px; font-weight: 500; color: #6c757d;'>V1.0</span></div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align: center;'><span style='font-size: 28px; font-weight: bold;'>AbandonPro</span> <br><span style='font-size: 13px; font-weight: 500;'>V1.0</span></div>", unsafe_allow_html=True)
         
         st.write("")
         
