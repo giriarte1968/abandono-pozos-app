@@ -1,6 +1,7 @@
 import pandas as pd
 from .database_service import DatabaseService
 from .mock_api_client import MockApiClient
+from .financial_service_mock import financial_service
 
 class CapacidadContratoService:
     """
@@ -11,16 +12,20 @@ class CapacidadContratoService:
         self.api_client = MockApiClient()
 
     def get_active_contracts(self):
-        """Retorna lista de contratos activos."""
-        query = "SELECT ID_CONTRATO, NOMBRE_CONTRATO, CLIENTE FROM CONTRATOS WHERE ESTADO = 'ACTIVO'"
+        """Retorna lista de contratos activos desde el servicio financiero."""
         try:
-            return self.db.fetch_all(query)
-        except:
-            # Fallback mock si la DB falla
+            # Usamos el servicio financiero para consistencia (contiene SureOil, YPF, etc)
+            contratos = financial_service.get_contratos()
             return [
-                {"ID_CONTRATO": 1, "NOMBRE_CONTRATO": "BRACO-YPF-ABANDONO-2026", "CLIENTE": "YPF"},
-                {"ID_CONTRATO": 2, "NOMBRE_CONTRATO": "SureOil - Lote Norte", "CLIENTE": "SureOil"}
+                {
+                    "ID_CONTRATO": c['ID_CONTRATO'], 
+                    "NOMBRE_CONTRATO": c['NOMBRE_CONTRATO'], 
+                    "CLIENTE": c['CLIENTE']
+                } for c in contratos if c.get('ESTADO') == 'ACTIVO'
             ]
+        except Exception as e:
+            print(f"[CAPACIDAD] Error al obtener contratos: {e}")
+            return []
 
     def get_contract_capacity_template(self, contract_id):
         """Retorna la plantilla de recursos requeridos para un contrato."""
@@ -29,11 +34,20 @@ class CapacidadContratoService:
             FROM tbl_contrato_capacidad_operativa 
             WHERE id_contrato = %s AND activo = TRUE
         """
+        res = []
         try:
-            return self.db.fetch_all(query, (contract_id,))
-        except:
-            # Fallback mock consistente con 008
-            if str(contract_id) == "1":
+            res = self.db.fetch_all(query, (contract_id,))
+        except Exception as e:
+            print(f"[CAPACIDAD] DB Error en template: {e}")
+
+        # Si la DB no devuelve nada (vacia o sin conexión), usamos el fallback mock
+        if not res:
+            # Fallback mock consistente con 008/009 para BRACO-YPF y SureOil
+            # Buscamos el nombre del contrato para el fallback
+            contratos = financial_service.get_contratos()
+            c = next((c for c in contratos if c['ID_CONTRATO'] == contract_id), None)
+            
+            if c and ("YPF" in c['NOMBRE_CONTRATO'] or "BRACO" in c['NOMBRE_CONTRATO']):
                 return [
                     {"rol_requerido": "PULLING", "cantidad_requerida": 3, "tipo_recurso": "EQUIPO"},
                     {"rol_requerido": "CEMENTADOR", "cantidad_requerida": 2, "tipo_recurso": "EQUIPO"},
@@ -42,7 +56,12 @@ class CapacidadContratoService:
                     {"rol_requerido": "WIRELINE", "cantidad_requerida": 2, "tipo_recurso": "PERSONAL"},
                     {"rol_requerido": "TRANSP_PERSONAL", "cantidad_requerida": 1, "tipo_recurso": "EQUIPO"}
                 ]
-            return []
+            elif c and "SureOil" in c['NOMBRE_CONTRATO']:
+                return [
+                    {"rol_requerido": "PULLING", "cantidad_requerida": 1, "tipo_recurso": "EQUIPO"},
+                    {"rol_requerido": "SUPERVISION", "cantidad_requerida": 1, "tipo_recurso": "PERSONAL"}
+                ]
+        return res
 
     def get_availability_report(self, contract_id):
         """
