@@ -18,6 +18,7 @@ def set_white_bg():
     <style>
     .stApp {
         background-color: #FFFFFF !important;
+        zoom: 90%;
     }
     
     /* Contenedor de Login: Fondo claro con sombra suave */
