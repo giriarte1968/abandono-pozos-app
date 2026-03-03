@@ -87,9 +87,9 @@ def set_background(png_file):
 
 def render_view():
     """
-    Vista de Login (Landing Page) con Fondo de Imagen.
+    Vista de Login (Landing Page) con Fondo de Imagen completo.
     """
-    set_background("frontend/assets/landing_bg.jpg")
+    set_background("frontend/assets/braco_chalten.jpg")
 
     # 2. Espaciador Vertical
     st.markdown("<br><br><br><br>", unsafe_allow_html=True)
@@ -98,18 +98,8 @@ def render_view():
     col1, col2, col3 = st.columns([1.2, 1, 1.2])
     
     with col2:
-        # Logo con Braco (base64 para performance)
-        logo_path = "frontend/assets/braco_logo.jpeg"
-        logo_b64 = get_base64_cached(logo_path)
-        if logo_b64:
-            st.markdown(f"""
-                <div style='text-align: center; margin-bottom: 25px;'>
-                    <img src='data:image/jpeg;base64,{logo_b64}' style='width: 208px;'>
-                    <br><span style='font-size: 13px; font-weight: 500; letter-spacing: 1px; color: rgba(255,255,255,0.7) !important;'>V 1.0</span>
-                </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("<div style='text-align: center;'><span style='font-size: 28px; font-weight: bold;'>AbandonPro</span> <br><span style='font-size: 13px; font-weight: 500;'>V1.0</span></div>", unsafe_allow_html=True)
+        # Título de texto
+        st.markdown("<div style='text-align: center;'><span style='font-size: 28px; font-weight: bold;'>AbandonPro</span> <br><span style='font-size: 13px; font-weight: 500;'>V1.0</span></div>", unsafe_allow_html=True)
         
         st.write("")
         
