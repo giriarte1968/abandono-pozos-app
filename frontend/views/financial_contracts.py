@@ -18,21 +18,45 @@ def render_contracts_view():
     
     st.title("Gestión de Contratos")
     st.markdown("---")
+
+    # =====================================================
+    # RESUMEN GENERAL (siempre al tope)
+    # =====================================================
+    contratos_all = financial_service.get_contratos()
     
-    # Tabs
-    tab1, tab2 = st.tabs(["Lista de Contratos", "Nuevo Contrato"])
+    total_contratos = len(contratos_all)
+    total_monto = sum(c['MONTO_TOTAL_CONTRACTUAL'] for c in contratos_all)
+    total_backlog = sum(c['BACKLOG_RESTANTE'] for c in contratos_all)
+    total_pozos = sum(c['CANTIDAD_POZOS'] for c in contratos_all)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Contratos", total_contratos)
+    with col2:
+        st.metric("Monto Total", f"${total_monto:,.0f}")
+    with col3:
+        st.metric("Backlog Total", f"${total_backlog:,.0f}")
+    with col4:
+        st.metric("Total Pozos", total_pozos)
+    
+    st.markdown("---")
+    
+    # Tabs - solo vista operativa, sin formulario de alta
+    tab1, = st.tabs(["Lista de Contratos"])
     
     with tab1:
         render_contracts_list()
-    
-    with tab2:
-        render_new_contract_form()
 
 
 def render_contracts_list():
     """Renderiza la lista de contratos"""
     
     st.subheader("Contratos Activos")
+    
+    st.info(
+        "ℹ️ **MVP**: Para dar de alta un nuevo contrato, ir a **Administración → Datos Maestros Financieros → Gestión de Contratos**.",
+        icon="🔧"
+    )
     
     # Filtros
     col1, col2 = st.columns(2)
@@ -114,26 +138,6 @@ def render_contracts_list():
             st.markdown("**Pozos Asignados:**")
             pozos_str = ", ".join(contrato.get('pozos_asignados', []))
             st.text(pozos_str)
-    
-    # Resumen
-    st.markdown("---")
-    st.subheader("Resumen General")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    total_contratos = len(contratos)
-    total_monto = sum(c['MONTO_TOTAL_CONTRACTUAL'] for c in contratos)
-    total_backlog = sum(c['BACKLOG_RESTANTE'] for c in contratos)
-    total_pozos = sum(c['CANTIDAD_POZOS'] for c in contratos)
-    
-    with col1:
-        st.metric("Total Contratos", total_contratos)
-    with col2:
-        st.metric("Monto Total", f"${total_monto:,.0f}")
-    with col3:
-        st.metric("Backlog Total", f"${total_backlog:,.0f}")
-    with col4:
-        st.metric("Total Pozos", total_pozos)
 
 
 def render_new_contract_form():
@@ -248,8 +252,11 @@ def render_new_contract_form():
                 financial_service.contratos.append(nuevo_contrato)
                 financial_service._persist_data()
                 
-                st.success(f"Contrato '{nombre_contrato}' creado exitosamente!")
-                st.balloons()
+                st.success(f"✅ Contrato '{nombre_contrato}' registrado en sesión actual.")
+                st.warning(
+                    "⚠️ **MVP**: Este cambio persiste durante la sesión activa. "
+                    "Al reiniciar la aplicación, los datos vuelven al estado inicial del mock."
+                )
 
 
 if __name__ == "__main__":

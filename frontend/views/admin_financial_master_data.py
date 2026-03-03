@@ -147,7 +147,12 @@ def render_contracts_management():
                     financial_service.contratos.append(nuevo_contrato)
                     financial_service._persist_data()
                     
-                    st.success(f"Contrato '{nombre}' creado exitosamente!")
+                    st.success(f"✅ Contrato '{nombre}' registrado en sesión actual.")
+                    st.warning(
+                        "⚠️ **MVP**: Este cambio persiste durante la sesión activa. "
+                        "Al reiniciar la aplicación, los datos vuelven al estado inicial del mock. "
+                        "La persistencia real requiere conexión a base de datos (próximo sprint)."
+                    )
                     st.rerun()
 
 
