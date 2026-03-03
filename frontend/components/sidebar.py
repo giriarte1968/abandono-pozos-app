@@ -108,6 +108,9 @@ def render_menu_native(role, current_page):
         if st.button("Proyectos", use_container_width=True, type="primary" if current_page == 'Proyectos' else "secondary"):
             st.session_state['current_page'] = 'Proyectos'
             st.rerun()
+        if st.button("Estado Recursos", use_container_width=True, type="primary" if current_page == 'Estado Recursos' else "secondary"):
+            st.session_state['current_page'] = 'Estado Recursos'
+            st.rerun()
         if st.button("Logística", use_container_width=True, type="primary" if current_page == 'Logística' else "secondary"):
             st.session_state['current_page'] = 'Logística'
             st.rerun()

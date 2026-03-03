@@ -62,6 +62,10 @@ def main_router():
     elif page == 'Proyectos':
         from views import project_list
         project_list.render_view()
+
+    elif page == 'Estado Recursos':
+        from views import dashboard_recursos_view
+        dashboard_recursos_view.render_view()
     
     elif page == 'Detalle Proyecto':
         # Validar que tengamos un ID seleccionado
