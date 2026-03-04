@@ -24,6 +24,13 @@ def _get_recurso_estado_service():
     except Exception:
         return None
 
+def _get_compliance_service():
+    try:
+        from services.compliance_service import ComplianceService
+        return ComplianceService()
+    except Exception:
+        return None
+
 try:
     import google.genai as genai
     USE_NEW_PACKAGE = True
@@ -261,6 +268,19 @@ class AIService:
                             lines.append(
                                 f"  - {est['id_recurso']} ({est['tipo_recurso']}) "
                                 f"| Estado Hoy: {est['estado_operativo']}{asignacion}"
+                            )
+
+                # --- CUMPLIMIENTO REGULATORIO ---
+                comp_service = _get_compliance_service()
+                if comp_service:
+                    summaries = comp_service.get_all_compliance_summaries()
+                    if summaries:
+                        lines.append("\n## CUMPLIMIENTO REGULATORIO Y BLOQUEOS:")
+                        for s in summaries:
+                            status_icon = "🔴" if not s['puede_avanzar'] else ("🟡" if s['advertencia'] > 0 else "🟢")
+                            lines.append(
+                                f"  - Pozo {s['pozo_id']} {status_icon} | Resumen: {s['resumen']} "
+                                f"| Reglas: {s['cumple']} OK, {s['no_cumple']} Fail, {s['overrides']} Overrides"
                             )
         except Exception as e:
             lines.append(f"  (Error al cargar datos operativos: {e})")
