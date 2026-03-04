@@ -138,8 +138,9 @@ class RecursoEstadoService:
                     'observaciones': '',
                     'ts_creacion': datetime.now().isoformat()
                 })
-        
         self._persist_mock()
+
+    def _persist_mock(self):
         os.makedirs(os.path.dirname(self.persistence_file), exist_ok=True)
         with open(self.persistence_file, 'w') as f:
             json.dump(self.mock_data, f, indent=2)
