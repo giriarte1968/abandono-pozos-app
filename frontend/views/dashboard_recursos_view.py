@@ -81,32 +81,32 @@ def render_view():
 
     # Formulario de Alta Rápida
     with st.expander("➕ Cargar / Actualizar Estado"):
+        api = st.session_state.get('api_client', MockApiClient())
+        f_tipo = st.selectbox("Tipo de Recurso a Cargar", ["PERSONAL", "EQUIPO"], key="f_tipo_alta")
+        
         with st.form("form_estado", clear_on_submit=True):
-            api = st.session_state.get('api_client', MockApiClient())
-            
             c_f1, c_f2 = st.columns(2)
-            f_tipo = c_f1.selectbox("Tipo", ["PERSONAL", "EQUIPO"])
             
             # Dinámico según tipo
             if f_tipo == "PERSONAL":
                 opciones = [p['name'] for p in api.get_master_personnel()]
-                f_recurso = c_f2.selectbox("Recurso", opciones)
+                f_recurso = c_f1.selectbox("Recurso", opciones)
                 estados_posibles = ['ACTIVO', 'STANDBY', 'LICENCIA', 'FRANCO']
             else:
                 opciones = [e['name'] for e in api.get_master_equipment()]
-                f_recurso = c_f2.selectbox("Recurso", opciones)
+                f_recurso = c_f1.selectbox("Recurso", opciones)
                 estados_posibles = ['ACTIVO', 'STANDBY', 'MANTENIMIENTO', 'ASIGNADO']
             
-            c_f3, c_f4 = st.columns(2)
-            f_estado = c_f3.selectbox("Estado", estados_posibles)
+            f_estado = c_f2.selectbox("Estado", estados_posibles)
             
+            c_f3, c_f4 = st.columns(2)
             proyectos = api.get_projects()
             opciones_pozo = [""] + [p['id'] for p in proyectos]
-            f_pozo = c_f4.selectbox("Pozo Asignado (Opcional)", opciones_pozo)
+            f_pozo = c_f3.selectbox("Pozo Asignado (Opcional)", opciones_pozo)
             
-            f_obs = st.text_input("Observaciones")
+            f_obs = c_f4.text_input("Observaciones")
             
-            if st.form_submit_button("Guardar Estado Diaro", type="primary"):
+            if st.form_submit_button("Guardar Estado Diario", type="primary"):
                 if not f_recurso:
                     st.error("Debe seleccionar un recurso válido existente en el maestro.")
                 else:

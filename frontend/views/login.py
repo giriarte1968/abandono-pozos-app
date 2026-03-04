@@ -84,7 +84,7 @@ def render_view():
     
     with col_img:
         # Mostrar logo/imagen en la columna izquierda
-        image_path = "frontend/assets/braco_chalten.jpg"
+        image_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "braco_chalten.jpg")
         if os.path.exists(image_path):
             st.image(image_path, use_container_width=True)
         else:
