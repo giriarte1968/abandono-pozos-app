@@ -31,6 +31,41 @@ def _get_compliance_service():
     except Exception:
         return None
 
+def _get_audit_service():
+    try:
+        from services.audit_service import AuditService
+        return AuditService()
+    except Exception:
+        return None
+
+def _get_capacidad_service():
+    try:
+        from services.capacidad_contrato_service import CapacidadContratoService
+        return CapacidadContratoService()
+    except Exception:
+        return None
+
+def _get_cementation_service():
+    try:
+        from services.cementation_service import CementationService
+        return CementationService()
+    except Exception:
+        return None
+
+def _get_closure_service():
+    try:
+        from services.closure_service import ClosureService
+        return ClosureService()
+    except Exception:
+        return None
+
+def _get_weather_service():
+    try:
+        from services.weather_service import WeatherService
+        return WeatherService()
+    except Exception:
+        return None
+
 try:
     import google.genai as genai
     USE_NEW_PACKAGE = True
@@ -282,8 +317,48 @@ class AIService:
                                 f"  - Pozo {s['pozo_id']} {status_icon} | Resumen: {s['resumen']} "
                                 f"| Reglas: {s['cumple']} OK, {s['no_cumple']} Fail, {s['overrides']} Overrides"
                             )
+
+                # --- AUDITORÍA RECIENTE (TIMELINE) ---
+                audit_svc = _get_audit_service()
+                if audit_svc:
+                    events = audit_svc.get_all_events()[:5] # Últimos 5
+                    if events:
+                        lines.append("\n## ÚLTIMA ACTIVIDAD DEL SISTEMA (Auditoría):")
+                        for ev in events:
+                            ts = ev.get('timestamp_utc')
+                            if hasattr(ts, 'strftime'): ts = ts.strftime("%H:%M:%S")
+                            else: ts = str(ts)[-8:]
+                            lines.append(f"  - [{ts}] {ev['id_usuario']} ({ev['rol_usuario']}): {ev['tipo_evento']} en {ev['entidad']} {ev['entidad_id']}")
+
+                # --- CAPACIDAD CONTRACTUAL ---
+                cap_svc = _get_capacidad_service()
+                if cap_svc:
+                    active_contracts = cap_svc.get_active_contracts()
+                    if active_contracts:
+                        lines.append("\n## CAPACIDAD OPERATIVA POR CONTRATO:")
+                        for c in active_contracts:
+                            report = cap_svc.get_availability_report(c['ID_CONTRATO'])
+                            if not report.empty:
+                                gaps = report[report['Estado'].str.contains("⚠️")]
+                                if not gaps.empty:
+                                    gap_summary = ", ".join([f"{r['Recurso']}: {r['Estado']}" for _, r in gaps.iterrows()])
+                                    lines.append(f"  - {c['NOMBRE_CONTRATO']}: {gap_summary}")
+                                else:
+                                    lines.append(f"  - {c['NOMBRE_CONTRATO']}: ✅ Capacidad Completa")
+
+                # --- ESTADOS DE INGENIERÍA (Cementación y Cierre) ---
+                cem_svc = _get_cementation_service()
+                clo_svc = _get_closure_service()
+                if cem_svc:
+                    pozo_ids = cem_svc.get_all_pozo_ids()
+                    if pozo_ids:
+                        lines.append("\n## ESTADO TÉCNICO POZOS (Cementación/Cierre):")
+                        for pid in pozo_ids:
+                            cem_st = cem_svc.get_estado_cementacion_pozo(pid)
+                            clo_st = clo_svc.get_estado_cierre_pozo(pid) if clo_svc else {"resumen": "N/A"}
+                            lines.append(f"  - Pozo {pid}: {cem_st['resumen']} | {clo_st['resumen']}")
         except Exception as e:
-            lines.append(f"  (Error al cargar datos operativos: {e})")
+            lines.append(f"  (Error al cargar datos operativos extendidos: {e})")
 
         # --- CONTEXTO DE POZO ACTIVO (si hay uno seleccionado) ---
         if ctx:
@@ -293,6 +368,14 @@ class AIService:
                 f"| Yacimiento: {ctx.get('yacimiento', 'N/A')} "
                 f"| Estado: {ctx.get('status', 'N/A')} | Progreso: {ctx.get('progreso', 0)}%"
             )
+            # Agregar clima si es pozo activo
+            coords = ctx.get('coordinates', {}) or ctx.get('coords', {})
+            if coords and 'lat' in coords and 'lon' in coords:
+                w_svc = _get_weather_service()
+                if w_svc:
+                    weather = w_svc.get_weather(coords['lat'], coords['lon'])
+                    if weather:
+                        lines.append(f"  - Clima: {weather['temp_actual']}, Viento: {weather['viento_actual']} ({'ALERTA' if weather['alerta_viento'] else 'Seguro para operar'})")
 
         lines.append("\n=== FIN DE DATOS REALES. NUNCA inventes datos que no estén aquí. ===")
         return "\n".join(lines)
