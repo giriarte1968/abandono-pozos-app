@@ -357,6 +357,32 @@ class AIService:
                             cem_st = cem_svc.get_estado_cementacion_pozo(pid)
                             clo_st = clo_svc.get_estado_cierre_pozo(pid) if clo_svc else {"resumen": "N/A"}
                             lines.append(f"  - Pozo {pid}: {cem_st['resumen']} | {clo_st['resumen']}")
+
+                # --- LOGÍSTICA Y MOVILIZACIONES ---
+                logistics = api.get_all_logistics()
+                if logistics:
+                    lines.append("\n## LOGÍSTICA Y MOVILIZACIONES (HOY):")
+                    for t in logistics:
+                        lines.append(
+                            f"  - {t['type']} ({t['driver']}) | Proyecto: {t['project_id']} "
+                            f"| Estado: {t['status']} | Plan: {t['time_plan']} "
+                            f"| GPS: {t['dist_to_well']:.1f}km (ETA: {t['eta_minutes']}min)"
+                        )
+
+                # --- SUMINISTROS e INSUMOS ---
+                supplies = api.get_all_supplies_status()
+                if supplies:
+                    lines.append("\n## BALANCE DE INSUMOS (Stock Crítico):")
+                    for s in supplies:
+                        if s['current'] <= s['min']:
+                            lines.append(f"  - 🚨 {s['item']} en {s['project_id']}: {s['current']} {s['unit']} (Mín: {s['min']})")
+
+                # --- MENSAJERÍA DE EMERGENCIA ---
+                emergency = api.get_emergency_inbox()
+                if emergency:
+                    lines.append("\n## ALERTAS DE EMERGENCIA (SMS/SAT):")
+                    for m in emergency:
+                        lines.append(f"  - [{m['ts']}] Pozo {m['project_id']}: {m['decoded_data'].get('desc')}")
         except Exception as e:
             lines.append(f"  (Error al cargar datos operativos extendidos: {e})")
 
