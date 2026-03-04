@@ -17,6 +17,13 @@ def _get_api_client():
     except Exception:
         return None
 
+def _get_recurso_estado_service():
+    try:
+        from services.recurso_estado_service import recurso_estado_service
+        return recurso_estado_service
+    except Exception:
+        return None
+
 try:
     import google.genai as genai
     USE_NEW_PACKAGE = True
@@ -240,6 +247,21 @@ class AIService:
                     tipo = eq.get('tipo_equipo') or eq.get('type', 'N/A')
                     estado = eq.get('status', 'N/A')
                     lines.append(f"  - {nombre} | Tipo: {tipo} | Estado: {estado}")
+
+                # --- ESTADO DIARIO DE RECURSOS ---
+                res_service = _get_recurso_estado_service()
+                if res_service:
+                    from datetime import date
+                    hoy = date.today()
+                    estados_hoy = res_service.get_estados(fecha=hoy)
+                    if estados_hoy:
+                        lines.append(f"\n## ESTADO DIARIO Y ASIGNACIONES RECURSOS ({hoy.isoformat()}):")
+                        for est in estados_hoy:
+                            asignacion = f" -> Asignado a Pozo: {est['id_pozo']}" if est.get('id_pozo') else " (Sin asignación específica)"
+                            lines.append(
+                                f"  - {est['id_recurso']} ({est['tipo_recurso']}) "
+                                f"| Estado Hoy: {est['estado_operativo']}{asignacion}"
+                            )
         except Exception as e:
             lines.append(f"  (Error al cargar datos operativos: {e})")
 
