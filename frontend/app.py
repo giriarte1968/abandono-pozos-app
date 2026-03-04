@@ -10,9 +10,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+import sys
+
 # Cargar variables de entorno desde la raíz del proyecto
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.append(project_root)
 load_dotenv(os.path.join(project_root, ".env"))
+
+# Importaciones globales LIGERAS (para evitar KeyError: 'components' en hot-reload)
+from components.sidebar import render_sidebar
+from components.chat import render_chat
+from styles.custom_css import load_custom_css
 
 # Debug: Verificar si se cargó la API Key
 if os.getenv("GEMINI_API_KEY"):
@@ -47,11 +56,9 @@ def main_router():
         return
 
     # Inyectar CSS global
-    from styles.custom_css import load_custom_css
     load_custom_css()
 
     # 2. Renderizar Sidebar Común (Navegación)
-    from components.sidebar import render_sidebar
     render_sidebar()
 
     # 3. Router de Vistas
@@ -132,7 +139,6 @@ def main_router():
 
     # 4. Renderizar Chat Flotante Global
     with st.sidebar:
-        from components.chat import render_chat
         render_chat()
 
 if __name__ == "__main__":
