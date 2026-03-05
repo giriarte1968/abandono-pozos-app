@@ -4,11 +4,23 @@ from typing import List, Dict, Any
 
 class AsignacionOperativaService:
     
-    VALORES_CONTRACTUALES = {'X-123': 185000.00, 'A-321': 185000.00, 'Z-789': 185000.00, 'M-555': 185000.00, 'P-001': 195000.00}
+    # @deprecated - Ahora se obtiene dinámicamente desde financial_service
+    # VALORES_CONTRACTUALES = {'X-123': 185000.00, 'A-321': 185000.00, 'Z-789': 185000.00, 'M-555': 185000.00, 'P-001': 195000.00}
     
     def __init__(self):
         self.mock_data_path = os.path.join(os.path.dirname(__file__), "asignacion_operativa_mock_data.json")
         self._mock_data = None
+        self._financial_service = None
+    
+    def _get_financial_service(self):
+        """Obtiene instancia de financial service para datos contractuales"""
+        if self._financial_service is None:
+            try:
+                from services.financial_service_mock import financial_service
+                self._financial_service = financial_service
+            except:
+                pass
+        return self._financial_service
 
     def _load_mock_data(self):
         if self._mock_data is None:
@@ -94,7 +106,15 @@ class AsignacionOperativaService:
 
     def calcular_desviacion_contractual(self, id_expediente: str) -> Dict:
         resumen = self.get_resumen_costos_por_expediente(id_expediente)
-        valor_contractual = self.VALORES_CONTRACTUALES.get(id_expediente, 0)
+        
+        # Obtener valor contractual desde tabla normalizada (financial_service)
+        fin_svc = self._get_financial_service()
+        if fin_svc:
+            valor_contractual = fin_svc.get_valor_contractual_pozo(id_expediente)
+        else:
+            # Fallback si no hay acceso a financial_service
+            valor_contractual = 0
+        
         costo_real = resumen['total_costo']
         desviacion_usd = costo_real - valor_contractual
         desviacion_pct = (desviacion_usd / valor_contractual * 100) if valor_contractual > 0 else 0

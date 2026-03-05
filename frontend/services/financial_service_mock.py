@@ -58,7 +58,7 @@ class FinancialServiceMock:
                 'FECHA_FIN': base_date + timedelta(days=365),
                 'ESTADO': 'ACTIVO',
                 'total_certificaciones': 1,
-                'pozos_asignados': ['X-123', 'A-321', 'Z-789', 'M-555']
+                'pozos_asignados': ['X-123', 'A-321', 'Z-789', 'M-555']  # @deprecated - usar tbl_contrato_pozos
             },
             {
                 'ID_CONTRATO': 2,
@@ -73,7 +73,7 @@ class FinancialServiceMock:
                 'FECHA_FIN': base_date + timedelta(days=335),
                 'ESTADO': 'ACTIVO',
                 'total_certificaciones': 1,
-                'pozos_asignados': ['P-001', 'P-002', 'H-101']
+                'pozos_asignados': ['P-001', 'P-002', 'H-101']  # @deprecated - usar tbl_contrato_pozos
             },
             {
                 'ID_CONTRATO': 3,
@@ -88,8 +88,28 @@ class FinancialServiceMock:
                 'FECHA_FIN': base_date + timedelta(days=380),
                 'ESTADO': 'ACTIVO',
                 'total_certificaciones': 0,
-                'pozos_asignados': ['H-102', 'T-201', 'C-301']
+                'pozos_asignados': ['H-102', 'T-201', 'C-301']  # @deprecated - usar tbl_contrato_pozos
             }
+        ]
+        
+        # ==========================================
+        # TABLA NORMALIZADA: CONTRATO-POZOS (tbl_contrato_pozos)
+        # Reemplaza el campo array pozos_asignados
+        # ==========================================
+        self.contrato_pozos = [
+            # Contrato 1 - SureOil
+            {'id': 1, 'contrato_id': 1, 'pozo_id': 'X-123', 'fecha_asignacion': base_date, 'estado': 'ACTIVO'},
+            {'id': 2, 'contrato_id': 1, 'pozo_id': 'A-321', 'fecha_asignacion': base_date, 'estado': 'ACTIVO'},
+            {'id': 3, 'contrato_id': 1, 'pozo_id': 'Z-789', 'fecha_asignacion': base_date, 'estado': 'ACTIVO'},
+            {'id': 4, 'contrato_id': 1, 'pozo_id': 'M-555', 'fecha_asignacion': base_date, 'estado': 'ACTIVO'},
+            # Contrato 2 - YPF
+            {'id': 5, 'contrato_id': 2, 'pozo_id': 'P-001', 'fecha_asignacion': base_date - timedelta(days=30), 'estado': 'ACTIVO'},
+            {'id': 6, 'contrato_id': 2, 'pozo_id': 'P-002', 'fecha_asignacion': base_date - timedelta(days=30), 'estado': 'ACTIVO'},
+            {'id': 7, 'contrato_id': 2, 'pozo_id': 'H-101', 'fecha_asignacion': base_date - timedelta(days=30), 'estado': 'ACTIVO'},
+            # Contrato 3 - Petrobras
+            {'id': 8, 'contrato_id': 3, 'pozo_id': 'H-102', 'fecha_asignacion': base_date + timedelta(days=15), 'estado': 'ACTIVO'},
+            {'id': 9, 'contrato_id': 3, 'pozo_id': 'T-201', 'fecha_asignacion': base_date + timedelta(days=15), 'estado': 'ACTIVO'},
+            {'id': 10, 'contrato_id': 3, 'pozo_id': 'C-301', 'fecha_asignacion': base_date + timedelta(days=15), 'estado': 'ACTIVO'},
         ]
         
         # ==========================================
@@ -294,8 +314,11 @@ class FinancialServiceMock:
         if not pozo:
             raise ValueError(f"Pozo {well_id} no encontrado en operaciones")
         
-        # Verificar que el pozo esté asignado al contrato
-        if well_id not in contrato.get('pozos_asignados', []):
+        # Verificar que el pozo esté asignado al contrato (USANDO TABLA NORMALIZADA)
+        relacion = next((cp for cp in self.contrato_pozos 
+                        if cp['contrato_id'] == id_contrato and cp['pozo_id'] == well_id 
+                        and cp['estado'] == 'ACTIVO'), None)
+        if not relacion:
             raise ValueError(f"Pozo {well_id} no está asignado al contrato {id_contrato}")
         
         # Verificar que no esté ya certificado
@@ -412,13 +435,31 @@ class FinancialServiceMock:
         return self.cobranzas
     
     def get_pozos_by_contrato(self, id_contrato: int) -> List[Dict]:
-        """Retorna pozos asignados a un contrato (desde operaciones)"""
-        contrato = self.get_contrato_by_id(id_contrato)
+        """Retorna pozos asignados a un contrato (desde tabla normalizada tbl_contrato_pozos)"""
+        # Usar tabla normalizada
+        relaciones = [cp for cp in self.contrato_pozos if cp['contrato_id'] == id_contrato and cp['estado'] == 'ACTIVO']
+        pozo_ids = [cp['pozo_id'] for cp in relaciones]
+        
+        todos_pozos = self.get_pozos()
+        return [p for p in todos_pozos if p['ID_WELL'] in pozo_ids]
+    
+    def get_contrato_by_pozo(self, pozo_id: str) -> Optional[Dict]:
+        """Retorna el contrato asociado a un pozo usando tbl_contrato_pozos"""
+        relacion = next((cp for cp in self.contrato_pozos if cp['pozo_id'] == pozo_id and cp['estado'] == 'ACTIVO'), None)
+        if relacion:
+            return self.get_contrato_by_id(relacion['contrato_id'])
+        return None
+    
+    def get_valor_contractual_pozo(self, pozo_id: str) -> float:
+        """Retorna el valor_unitario_base_usd del contrato asociado a un pozo"""
+        contrato = self.get_contrato_by_pozo(pozo_id)
         if contrato:
-            pozo_ids = contrato.get('pozos_asignados', [])
-            todos_pozos = self.get_pozos()
-            return [p for p in todos_pozos if p['ID_WELL'] in pozo_ids]
-        return []
+            return contrato.get('VALOR_UNITARIO_BASE_USD', 0)
+        return 0
+    
+    def get_all_contrato_pozos(self) -> List[Dict]:
+        """Retorna todas las relaciones contrato-pozo"""
+        return self.contrato_pozos
     
     def get_kpis_dashboard(self) -> Dict[str, Any]:
         """Calcula KPIs para el dashboard financiero"""
