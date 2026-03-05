@@ -151,6 +151,9 @@ def render_menu_native(role, current_page):
         if st.button("Capacidad Contrato", use_container_width=True, type="primary" if current_page == 'Capacidad Contrato' else "secondary"):
             st.session_state['current_page'] = 'Capacidad Contrato'
             st.rerun()
+        if st.button("Eficiencia Operativa", use_container_width=True, type="primary" if current_page == 'Eficiencia Operativa' else "secondary"):
+            st.session_state['current_page'] = 'Eficiencia Operativa'
+            st.rerun()
         st.divider()
     
     # Administración

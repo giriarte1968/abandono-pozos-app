@@ -133,7 +133,11 @@ def main_router():
     elif page == 'Capacidad Contrato':
         from views import capacidad_contrato_view
         capacidad_contrato_view.render_view()
-        
+    
+    elif page == 'Eficiencia Operativa':
+        from views import dashboard_eficiencia_view
+        dashboard_eficiencia_view.render_dashboard_eficiencia()
+    
     else:
         st.warning(f"Página no encontrada: {page}")
 
