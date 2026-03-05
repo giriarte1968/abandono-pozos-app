@@ -93,135 +93,13 @@ def render_view(project_id):
         </h1>
         """, unsafe_allow_html=True)
     
+    # Stepper de workflow - AL TOPE
+    render_stepper(project['status'], blocked=project.get('workflow_status') == 'BLOCKED_BY_INCIDENT')
+    
     st.markdown("---")
     
-    # ═══════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════
     # SECCIÓN 1: INFORMACIÓN GENERAL (Grid 3 columnas)
-    # ═══════════════════════════════════════════════════════════════
-    st.markdown("##### 📋 Información General")
-    
-    col_info1, col_info2, col_info3 = st.columns(3)
-    with col_info1:
-        render_card("Campaña", project.get('campana', 'N/A'), "🎯")
-    with col_info2:
-        render_card("Fecha Operativa", "2026-02-01", "📅")
-    with col_info3:
-        render_card("Responsable", project.get('responsable', 'N/A'), "👥")
-    
-    st.markdown("---")
-    
-    # ═══════════════════════════════════════════════════════════════
-    # SECCIÓN 2: GATES REGULATORIOS (External Truth)
-    # ═══════════════════════════════════════════════════════════════
-    st.markdown("##### 🛡️ Gates Regulatorios (External Truth)")
-    
-    # Cache de Overrides
-    cache = api._offline_cache.get(project_id, {})
-    
-    col_gate1, col_gate2, col_gate3 = st.columns(3)
-    
-    with col_gate1:
-        # Gate 1: DTM
-        dtm_ok = project.get('dtm_confirmado', False) or cache.get('GATE_DTM')
-        status = "ABIERTO" if dtm_ok else "BLOQUEADO"
-        render_gate_card(
-            "Gate DTM / Apertura", 
-            status, 
-            "🚪",
-            can_override=not dtm_ok and not api.is_online(),
-            override_callback=lambda: api.manual_override_gate(project_id, "GATE_DTM", "Apertura forzada por falta de señal en locación.", user_id=username, user_role=user_role)
-        )
-    
-    with col_gate2:
-        # Gate 2: Personal
-        pers_ok = project.get('personal_confirmado_hoy', False) or cache.get('GATE_PERS')
-        status = "ABIERTO" if pers_ok else "BLOQUEADO"
-        render_gate_card(
-            "Gate Personal Presente", 
-            status, 
-            "👷",
-            can_override=not pers_ok and not api.is_online(),
-            override_callback=lambda: api.manual_override_gate(project_id, "GATE_PERS", "Ingreso manual validado físicamente (Sin señal).", user_id=username, user_role=user_role)
-        )
-    
-    with col_gate3:
-        # Gate 3: HSE
-        hse_ok = (not any(p['critical'] and (not p.get('medical_ok') or not p.get('induction_ok')) for p in project.get('personnel_list', []))) or cache.get('GATE_HSE')
-        status = "CUMPLIDO" if hse_ok else "FALLA CRÍTICA"
-        render_gate_card(
-            "Gate HSE Compliance", 
-            status, 
-            "🛡️",
-            can_override=not hse_ok and not api.is_online(),
-            override_callback=lambda: api.manual_override_gate(project_id, "GATE_HSE", "Cumplimiento validado por supervisor (Sin señal).", user_id=username, user_role=user_role)
-        )
-    
-    st.markdown("---")
-    
-    # ═══════════════════════════════════════════════════════════════
-    # SECCIÓN 3: CUMPLIMIENTO REGULATORIO
-    # ═══════════════════════════════════════════════════════════════
-    st.markdown("##### 📜 Cumplimiento Regulatorio")
-    
-    from services.compliance_service import ComplianceService
-    _compliance = ComplianceService(audit_service=api.audit)
-    _comp_summary = _compliance.get_compliance_summary(project_id)
-    
-    col_comp_main, col_comp1, col_comp2 = st.columns([2, 1, 1])
-    
-    with col_comp_main:
-        # Card resumen principal
-        status_general = "CUMPLE" if _comp_summary['resumen'] == "CUMPLE" else "NO CUMPLE"
-        color = "green" if status_general == "CUMPLE" else "red"
-        render_card("Estado General", status_general, "✓" if status_general == "CUMPLE" else "✕", color)
-        st.caption(f"**{_comp_summary['total_reglas']} reglas verificadas**")
-    
-    with col_comp1:
-        render_card("Reglas Evaluadas", str(_comp_summary['total_reglas']), "📋")
-    
-    with col_comp2:
-        render_card("Overrides Activos", str(_comp_summary['overrides']), "⚠️", "yellow" if _comp_summary['overrides'] > 0 else None)
-    
-    st.markdown("---")
-    
-    # ═══════════════════════════════════════════════════════════════
-    # SECCIÓN 4: CONTROL DE CEMENTACIÓN
-    # ═══════════════════════════════════════════════════════════════
-    from services.cementation_service import CementationService
-    _cementation = CementationService(audit_service=api.audit)
-    _cem_estado = _cementation.get_estado_cementacion_pozo(project_id)
-    
-    st.markdown("##### 🧪 Control de Cementación")
-    
-    col_cem1, col_cem2 = st.columns([3, 1])
-    with col_cem1:
-        render_card("Estado Cementación", _cem_estado['resumen'], "🔧")
-    with col_cem2:
-        status = "✅ Habilitado" if _cem_estado['puede_avanzar'] else '🚫 Bloqueado'
-        color = "green" if _cem_estado['puede_avanzar'] else "red"
-        render_card("Avance", status, "▶", color)
-    
-    st.markdown("---")
-    
-    # ═══════════════════════════════════════════════════════════════
-    # SECCIÓN 5: CIERRE TÉCNICO
-    # ═══════════════════════════════════════════════════════════════
-    from services.closure_service import ClosureService
-    _closure = ClosureService(audit_service=api.audit, cementation_service=_cementation)
-    _cierre_estado = _closure.get_estado_cierre_pozo(project_id)
-    
-    st.markdown("##### 🏁 Cierre Técnico")
-    
-    col_cierre1, col_cierre2 = st.columns([3, 1])
-    with col_cierre1:
-        render_card("Estado Cierre", _cierre_estado['resumen'], "🏁")
-    with col_cierre2:
-        status = '✅ Listo' if _cierre_estado['estado'] == 'CERRADO_DEFENDIBLE' else '🔄 Pendiente'
-        color = "green" if _cierre_estado['estado'] == 'CERRADO_DEFENDIBLE' else "yellow"
-        render_card("Regulador", status, "📋", color)
-    
-    st.markdown("---")
-    
     # ═══════════════════════════════════════════════════════════════════
     # SECCIÓN 6: CLIMA Y MAPA
     # ═══════════════════════════════════════════════════════════════════
