@@ -508,18 +508,25 @@ def render_view(project_id):
             st.markdown("##### ➕ Nueva Imputación")
             col1, col2 = st.columns(2)
             with col1:
-                tipo_recurso = st.selectbox("Tipo", ["PERSONAL", "EQUIPO"], index=["PERSONAL", "EQUIPO"].index(st.session_state['asig_tipo']), key="asig_tipo_select")
+                tipo_recurso = st.selectbox("Tipo", ["PERSONAL", "EQUIPO"], key="asig_tipo_select")
+            
+            # Detectar cambio de tipo y rerunear
+            if 'asig_tipo_prev' not in st.session_state:
+                st.session_state['asig_tipo_prev'] = tipo_recurso
+            
+            if tipo_recurso != st.session_state['asig_tipo_prev']:
+                st.session_state['asig_tipo_prev'] = tipo_recurso
+                st.session_state['asig_recurso_idx'] = 0
+                st.rerun()
+            
             with col2:
                 opciones = recursos.get(tipo_recurso, [])
-                recurso_idx = st.selectbox("Recurso", range(len(opciones)), index=st.session_state['asig_recurso_idx'], 
+                # Resetear índice si excede opciones disponibles
+                if st.session_state.get('asig_recurso_idx', 0) >= len(opciones):
+                    st.session_state['asig_recurso_idx'] = 0
+                recurso_idx = st.selectbox("Recurso", range(len(opciones)), index=st.session_state.get('asig_recurso_idx', 0), 
                                           format_func=lambda i: f"{opciones[i]['nombre']} (${opciones[i]['costo_hora']}/hr)", key="asig_recurso_select")
                 recurso_sel = opciones[recurso_idx]
-                
-                if tipo_recurso != st.session_state.get('asig_tipo_prev'):
-                    st.session_state['asig_tipo'] = tipo_recurso
-                    st.session_state['asig_tipo_prev'] = tipo_recurso
-                    st.session_state['asig_recurso_idx'] = 0
-                    st.rerun()
             
             col3, col4 = st.columns(2)
             with col3:
