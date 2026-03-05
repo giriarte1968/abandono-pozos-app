@@ -222,12 +222,9 @@ def render_view(project_id):
     
     st.markdown("---")
     
-    # 3. Stepper de Progreso
-    render_stepper(project['status'])
-    
-    # ═══════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════
     # SECCIÓN 6: CLIMA Y MAPA
-    # ═══════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════
     weather_alert = False
     col_geo1, col_geo2 = st.columns(2)
     
@@ -597,85 +594,12 @@ def render_view(project_id):
                 st.warning("⚠️ OPERABLE CON RIESGO (Alerta Meteorológica)")
             else:
                 st.success("✅ POZO HABILITADO")
-                
-            allowed_ops = project.get('allowed_operations', ["ESPERA"])
-            
-            with st.form("daily_rep"):
-                st.subheader("Borrador de Parte Diario")
-                
-                # Operaciones habilitadas dinámicamente
-                op = st.selectbox("Operación", allowed_ops, help="Operaciones filtradas por disponibilidad de equipos (Cisternas, Set Apertura, etc.)")
-                
-                # Advertencia si faltan operaciones comunes
-                if "CEMENTACION" not in allowed_ops:
-                    st.caption("ℹ️ *Cementación deshabilitada (Falta Cisterna operativa en locación)*")
-                if "DTM" not in allowed_ops:
-                    st.caption("ℹ️ *DTM deshabilitado (Falta Set de Apertura operativo)*")
-                
-                desc = st.text_area("Descripción de Actividades")
-                
-                # --- NUEVO: Selección de Canal de Comunicación ---
-                st.divider()
-                st.markdown("##### 📡 Canal de Transmisión")
-                channels = ["INTERNET", "SMS (GSM)", "SATELITAL (Iridium/Garmin)"]
-                if not api.is_online():
-                    st.info("💡 Detectado: **MODO OFFLINE**. Puedes guardar en cola o usar una salida de emergencia.")
-                
-                selected_ch_label = st.radio("Seleccionar Vía de Envío:", channels, horizontal=True)
-                channel_map = {"INTERNET": "INTERNET", "SMS (GSM)": "SMS", "SATELITAL (Iridium/Garmin)": "SATELITAL"}
-                target_channel = channel_map[selected_ch_label]
-
-                if target_channel != "INTERNET":
-                    encoded_preview = api.encode_for_emergency_channel(project['id'], {"op": op, "desc": desc})
-                    st.code(encoded_preview, language="markdown")
-                    st.caption("☝️ *Mensaje comprimido generado para canal de bajo ancho de banda.*")
-
-                # --- NUEVA SECCIÓN: CARGA DE EVIDENCIA ---
-                st.divider()
-                st.markdown("##### 📁 Evidencia Digital (Mandatorio)")
-                st.caption("Cargue fotos o videos (máx 90s) para certificar la operación.")
-                
-                uploaded_file = st.file_uploader("Adjuntar Evidencia", type=["jpg", "png", "jpeg", "mp4", "pdf"])
-                if uploaded_file:
-                    if st.button("Confirmar Carga de Evidencia", type="secondary"):
-                        res_ev = evidence_service.upload_evidence(
-                            uploaded_file, project_id, project['status'], 
-                            user_id=username, user_role=user_role
-                        )
-                        st.success(f"Evidencia certificada: {res_ev['hash'][:10]}...")
-
-                if st.form_submit_button("Presentar Parte (Final)", type="primary"):
-                    res = api.send_signal_parte_diario(
-                        project['id'], 
-                        {"op": op, "desc": desc}, 
-                        channel=target_channel,
-                        user_id=username,
-                        user_role=user_role
-                    )
-                    
-                    if res.get('status') == 'QUEUED':
-                        st.info(f"📥 {res['msg']}")
-                        st.warning("El reporte se enviará automáticamente cuando recuperes conexión.")
-                    elif res.get('status') == 'EMERGENCY_SENT':
-                        st.success(f"📟 {res['msg']}")
-                        st.toast("Transmisión de emergencia completada")
-                    else:
-                        st.balloons()
-                        st.success(res['msg'])
-                    
-                    # time.sleep(2)
-                    st.rerun()
-    
-    # Disclaimer Weather Footer
-    st.markdown("---")
-    st.caption("⚠️ **Aviso Legal:** Datos climáticos referenciales. No sustituyen mediciones en sitio.")
-    
-    # ═══════════════════════════════════════════════════════════════════
-    # SECCIÓN: ASIGNACIÓN OPERATIVA DIARIA
-    # ═══════════════════════════════════════════════════════════════════
-    st.markdown("---")
-    with st.expander("⏱️ Asignación Operativa Diaria", expanded=False):
-        st.markdown(f"##### ⏱️ Control de Horas - Pozo {project_id}")
+        
+        # ═══════════════════════════════════════════════════════════════════
+        # ASIGNACIÓN OPERATIVA (DENTRO DE PARTE DIARIO)
+        # ═══════════════════════════════════════════════════════════════════
+        st.markdown("---")
+        st.markdown(f"##### ⏱️ Asignación Operativa - {project_id}")
         
         asignaciones = asignacion_operativa_service.get_asignaciones_por_expediente(project_id)
         resumen = asignacion_operativa_service.get_resumen_costos_por_expediente(project_id)
@@ -713,7 +637,6 @@ def render_view(project_id):
                                           format_func=lambda i: f"{opciones[i]['nombre']} (${opciones[i]['costo_hora']}/hr)", key="asig_recurso_select")
                 recurso_sel = opciones[recurso_idx]
                 
-                # Actualizar session state cuando cambia selección
                 if tipo_recurso != st.session_state.get('asig_tipo_prev'):
                     st.session_state['asig_tipo'] = tipo_recurso
                     st.session_state['asig_tipo_prev'] = tipo_recurso
@@ -754,7 +677,93 @@ def render_view(project_id):
                         st.error(res['error'])
         
         if asignaciones:
-            st.markdown("##### 📋 Historial")
+            st.markdown("##### 📋 Historial de Imputaciones")
             df = pd.DataFrame(asignaciones)
             df['fecha'] = pd.to_datetime(df['fecha_operativa']).dt.strftime('%Y-%m-%d')
             st.dataframe(df[['fecha', 'nombre_recurso', 'tipo_recurso', 'etapa', 'tipo_actividad', 'horas_imputadas', 'costo_total_calculado']], hide_index=True)
+        
+        # ═══════════════════════════════════════════════════════════════════
+        # FIN ASIGNACIÓN OPERATIVA
+        # ═══════════════════════════════════════════════════════════════════
+        
+        st.markdown("---")
+        
+        # ═══════════════════════════════════════════════════════════════════
+        # FIN ASIGNACIÓN OPERATIVA
+        # ═══════════════════════════════════════════════════════════════════
+        
+        st.markdown("---")
+        
+        allowed_ops = project.get('allowed_operations', ["ESPERA"])
+        
+        with st.form("daily_rep"):
+            st.subheader("Borrador de Parte Diario")
+            
+            # Operaciones habilitadas dinámicamente
+            op = st.selectbox("Operación", allowed_ops, help="Operaciones filtradas por disponibilidad de equipos (Cisternas, Set Apertura, etc.)")
+            
+            # Advertencia si faltan operaciones comunes
+            if "CEMENTACION" not in allowed_ops:
+                st.caption("ℹ️ *Cementación deshabilitada (Falta Cisterna operativa en locación)*")
+            if "DTM" not in allowed_ops:
+                st.caption("TM deshabilitadoℹ️ *D (Falta Set de Apertura operativo)*")
+            
+            desc = st.text_area("Descripción de Actividades")
+            
+            # --- NUEVO: Selección de Canal de Comunicación ---
+            st.divider()
+            st.markdown("##### 📡 Canal de Transmisión")
+            channels = ["INTERNET", "SMS (GSM)", "SATELITAL (Iridium/Garmin)"]
+            if not api.is_online():
+                st.info("💡 Detectado: **MODO OFFLINE**. Puedes guardar en cola o usar una salida de emergencia.")
+            
+            selected_ch_label = st.radio("Seleccionar Vía de Envío:", channels, horizontal=True)
+            channel_map = {"INTERNET": "INTERNET", "SMS (GSM)": "SMS", "SATELITAL (Iridium/Garmin)": "SATELITAL"}
+            target_channel = channel_map[selected_ch_label]
+
+            if target_channel != "INTERNET":
+                encoded_preview = api.encode_for_emergency_channel(project['id'], {"op": op, "desc": desc})
+                st.code(encoded_preview, language="markdown")
+                st.caption("☝️ *Mensaje comprimido generado para canal de bajo ancho de banda.*")
+
+            # --- NUEVA SECCIÓN: CARGA DE EVIDENCIA ---
+            st.divider()
+            st.markdown("##### 📁 Evidencia Digital (Mandatorio)")
+            st.caption("Cargue fotos o videos (máx 90s) para certificar la operación.")
+            
+            uploaded_file = st.file_uploader("Adjuntar Evidencia", type=["jpg", "png", "jpeg", "mp4", "pdf"])
+            if uploaded_file:
+                if st.button("Confirmar Carga de Evidencia", type="secondary"):
+                    res_ev = evidence_service.upload_evidence(
+                        uploaded_file, project_id, project['status'], 
+                        user_id=username, user_role=user_role
+                    )
+                    st.success(f"Evidencia certificada: {res_ev['hash'][:10]}...")
+
+            if st.form_submit_button("Presentar Parte (Final)", type="primary"):
+                res = api.send_signal_parte_diario(
+                    project['id'], 
+                    {"op": op, "desc": desc}, 
+                    channel=target_channel,
+                    user_id=username,
+                    user_role=user_role
+                    )
+                
+                if res.get('status') == 'QUEUED':
+                    st.info(f"📥 {res['msg']}")
+                    st.warning("El reporte se enviará automáticamente cuando recuperes conexión.")
+                elif res.get('status') == 'EMERGENCY_SENT':
+                    st.success(f"📟 {res['msg']}")
+                    st.toast("Transmisión de emergencia completada")
+                else:
+                    st.balloons()
+                    st.success(res['msg'])
+                
+                # time.sleep(2)
+                st.rerun()
+    
+    # Disclaimer Weather Footer
+    
+    # Disclaimer Weather Footer
+    st.markdown("---")
+    st.caption("⚠️ **Aviso Legal:** Datos climaticos referenciales. No sustituyen mediciones en sitio.")

@@ -1,6 +1,6 @@
 import streamlit as st
 
-def render_stepper(current_status_code):
+def render_stepper(current_status_code, blocked=False):
     steps = [
         {"code": "INIT", "label": "Inicio"},
         {"code": "PLANNING", "label": "Planificación"},
@@ -63,6 +63,16 @@ def render_stepper(current_status_code):
         box-shadow: 0 4px 25px rgba(59, 130, 246, 0.5);
         animation: pulse 2s infinite;
     }
+    .step-item.blocked .step-circle {
+        background: linear-gradient(145deg, #ef4444, #dc2626);
+        border-color: #ef4444;
+        box-shadow: 0 4px 25px rgba(239, 68, 68, 0.5);
+        animation: pulse-red 1.5s infinite;
+    }
+    @keyframes pulse-red {
+        0%, 100% { box-shadow: 0 4px 25px rgba(239, 68, 68, 0.5); }
+        50% { box-shadow: 0 4px 35px rgba(239, 68, 68, 0.8); }
+    }
     @keyframes pulse {
         0%, 100% { box-shadow: 0 4px 25px rgba(59, 130, 246, 0.5); }
         50% { box-shadow: 0 4px 35px rgba(59, 130, 246, 0.8); }
@@ -112,8 +122,12 @@ def render_stepper(current_status_code):
             css_class = "completed"
             icon = "✓"
         elif idx == current_idx:
-            css_class = "active"
-            icon = "◆"
+            if blocked:
+                css_class = "blocked"
+                icon = "⚠️"
+            else:
+                css_class = "active"
+                icon = "◆"
         else:
             icon = "○"
         
@@ -127,3 +141,6 @@ def render_stepper(current_status_code):
     html += '</div>'
     
     st.markdown(html, unsafe_allow_html=True)
+    
+    if blocked:
+        st.warning("⚠️ PROYECTO BLOQUEADO - Hay incidentes oIssues sin resolver")
