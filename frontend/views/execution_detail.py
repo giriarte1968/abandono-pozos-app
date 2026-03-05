@@ -5,6 +5,7 @@ from services.mock_api_client import MockApiClient
 from components.stepper import render_stepper
 from services.weather_service import WeatherService
 from services.evidence_service import EvidenceService
+from services.asignacion_operativa_service import asignacion_operativa_service
 from views.well_timeline import render_timeline
 import folium
 from streamlit_folium import st_folium
@@ -669,6 +670,76 @@ def render_view(project_id):
     st.markdown("---")
     st.caption("⚠️ **Aviso Legal:** Datos climáticos referenciales. No sustituyen mediciones en sitio.")
     
-    # Disclaimer Weather Footer
+    # ═══════════════════════════════════════════════════════════════════
+    # SECCIÓN: ASIGNACIÓN OPERATIVA DIARIA
+    # ═══════════════════════════════════════════════════════════════════
     st.markdown("---")
-    st.caption("⚠️ **Aviso Legal:** Datos climáticos referenciales. No sustituyen mediciones en sitio.")
+    with st.expander("⏱️ Asignación Operativa Diaria", expanded=False):
+        st.markdown(f"##### ⏱️ Control de Horas - Pozo {project_id}")
+        
+        asignaciones = asignacion_operativa_service.get_asignaciones_por_expediente(project_id)
+        resumen = asignacion_operativa_service.get_resumen_costos_por_expediente(project_id)
+        desviacion = asignacion_operativa_service.calcular_desviacion_contractual(project_id)
+        
+        col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
+        with col_kpi1:
+            st.metric("Total Horas", f"{resumen['total_horas']:.1f} hrs")
+        with col_kpi2:
+            st.metric("Costo Real", f"${resumen['total_costo']:,.0f}")
+        with col_kpi3:
+            st.metric("Horas Standby", f"{resumen['horas_standby']:.1f} hrs", delta="⚠️ Impacto" if resumen['horas_standby'] > 0 else None)
+        with col_kpi4:
+            delta_dev = f"{desviacion['desviacion_pct']:.1f}%"
+            st.metric("vs Contractual", delta_dev, delta=f"${desviacion['desviacion_usd']:,.0f}" if desviacion['desviacion_usd'] != 0 else None)
+        
+        st.caption(f"💡 Info: Valor contractual: ${desviacion['valor_contractual']:,.0f}")
+        
+        with st.form("form_nueva_asignacion"):
+            st.markdown("##### ➕ Nueva Imputación")
+            col1, col2 = st.columns(2)
+            with col1:
+                tipo_recurso = st.selectbox("Tipo", ["PERSONAL", "EQUIPO"])
+            with col2:
+                recursos = asignacion_operativa_service.get_recursos_disponibles()
+                opciones = recursos.get(tipo_recurso, [])
+                recurso_idx = st.selectbox("Recurso", range(len(opciones)), format_func=lambda i: f"{opciones[i]['nombre']} (${opciones[i]['costo_hora']}/hr)")
+                recurso_sel = opciones[recurso_idx]
+            
+            col3, col4 = st.columns(2)
+            with col3:
+                fecha_input = st.date_input("Fecha", value=pd.to_datetime("2025-02-12"))
+            with col4:
+                etapa = st.selectbox("Etapa", asignacion_operativa_service.get_etapas())
+            
+            col5, col6 = st.columns(2)
+            with col5:
+                actividad = st.selectbox("Actividad", asignacion_operativa_service.get_tipos_actividad())
+            with col6:
+                horas = st.number_input("Horas", min_value=0.5, max_value=12.0, step=0.5, value=8.0)
+            
+            costo_hora = st.number_input("Costo/Hr (USD)", value=float(recurso_sel['costo_hora']), step=5.0)
+            observaciones = st.text_area("Obs")
+            
+            if st.form_submit_button("Registrar", type="primary"):
+                limite = asignacion_operativa_service.validar_limite_horas_diarias(recurso_sel['id'], str(fecha_input))
+                if not limite['puede_imputar']:
+                    st.error(f"Limite: {limite['horas_acumuladas']}/12")
+                else:
+                    data = {
+                        'id_expediente': project_id, 'id_recurso': recurso_sel['id'], 'tipo_recurso': tipo_recurso,
+                        'nombre_recurso': recurso_sel['nombre'], 'fecha_operativa': str(fecha_input),
+                        'etapa': etapa, 'tipo_actividad': actividad, 'horas_imputadas': horas,
+                        'costo_hora': costo_hora, 'observaciones': observaciones
+                    }
+                    res = asignacion_operativa_service.create_asignacion(data)
+                    if res['success']:
+                        st.success(f"OK: {horas} hrs")
+                        st.rerun()
+                    else:
+                        st.error(res['error'])
+        
+        if asignaciones:
+            st.markdown("##### 📋 Historial")
+            df = pd.DataFrame(asignaciones)
+            df['fecha'] = pd.to_datetime(df['fecha_operativa']).dt.strftime('%Y-%m-%d')
+            st.dataframe(df[['fecha', 'nombre_recurso', 'tipo_recurso', 'etapa', 'tipo_actividad', 'horas_imputadas', 'costo_total_calculado']], hide_index=True)
