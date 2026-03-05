@@ -694,16 +694,31 @@ def render_view(project_id):
         
         st.caption(f"💡 Info: Valor contractual: ${desviacion['valor_contractual']:,.0f}")
         
+        # Inicializar session state para el form
+        if 'asig_tipo' not in st.session_state:
+            st.session_state['asig_tipo'] = "PERSONAL"
+        if 'asig_recurso_idx' not in st.session_state:
+            st.session_state['asig_recurso_idx'] = 0
+        
+        recursos = asignacion_operativa_service.get_recursos_disponibles()
+        
         with st.form("form_nueva_asignacion"):
             st.markdown("##### ➕ Nueva Imputación")
             col1, col2 = st.columns(2)
             with col1:
-                tipo_recurso = st.selectbox("Tipo", ["PERSONAL", "EQUIPO"])
+                tipo_recurso = st.selectbox("Tipo", ["PERSONAL", "EQUIPO"], index=["PERSONAL", "EQUIPO"].index(st.session_state['asig_tipo']), key="asig_tipo_select")
             with col2:
-                recursos = asignacion_operativa_service.get_recursos_disponibles()
                 opciones = recursos.get(tipo_recurso, [])
-                recurso_idx = st.selectbox("Recurso", range(len(opciones)), format_func=lambda i: f"{opciones[i]['nombre']} (${opciones[i]['costo_hora']}/hr)")
+                recurso_idx = st.selectbox("Recurso", range(len(opciones)), index=st.session_state['asig_recurso_idx'], 
+                                          format_func=lambda i: f"{opciones[i]['nombre']} (${opciones[i]['costo_hora']}/hr)", key="asig_recurso_select")
                 recurso_sel = opciones[recurso_idx]
+                
+                # Actualizar session state cuando cambia selección
+                if tipo_recurso != st.session_state.get('asig_tipo_prev'):
+                    st.session_state['asig_tipo'] = tipo_recurso
+                    st.session_state['asig_tipo_prev'] = tipo_recurso
+                    st.session_state['asig_recurso_idx'] = 0
+                    st.rerun()
             
             col3, col4 = st.columns(2)
             with col3:
@@ -717,7 +732,7 @@ def render_view(project_id):
             with col6:
                 horas = st.number_input("Horas", min_value=0.5, max_value=12.0, step=0.5, value=8.0)
             
-            costo_hora = st.number_input("Costo/Hr (USD)", value=float(recurso_sel['costo_hora']), step=5.0)
+            costo_hora = st.number_input("Costo/Hr (USD)", value=float(recurso_sel.get('costo_hora', 0)), step=5.0)
             observaciones = st.text_area("Obs")
             
             if st.form_submit_button("Registrar", type="primary"):
