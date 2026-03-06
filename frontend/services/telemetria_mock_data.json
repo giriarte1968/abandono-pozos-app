@@ -1,0 +1,18 @@
+{
+    "pozos": ["X-123", "P-001", "A-321"],
+    "fechas": ["2025-02-10", "2025-02-11", "2025-02-12"],
+    "datos": [
+        {"pozo_id": "X-123", "fecha": "2025-02-10", "hook_load_avg": 21.5, "hook_load_max": 26.2, "wob_avg": 3.8, "torque_avg": 620, "annular_pressure_avg": 72, "pump_pressure_avg": 920, "spm_avg": 52, "trip_speed_avg": 145, "estado": "TRIPPING", "horas_operacion": 10, "horas_standby": 2},
+        {"pozo_id": "X-123", "fecha": "2025-02-11", "hook_load_avg": 22.8, "hook_load_max": 27.5, "wob_avg": 4.2, "torque_avg": 680, "annular_pressure_avg": 78, "pump_pressure_avg": 980, "spm_avg": 50, "trip_speed_avg": 138, "estado": "TRIPPING", "horas_operacion": 10, "horas_standby": 0},
+        {"pozo_id": "X-123", "fecha": "2025-02-12", "hook_load_avg": 24.2, "hook_load_max": 29.8, "wob_avg": 4.8, "torque_avg": 720, "annular_pressure_avg": 135, "pump_pressure_avg": 1050, "spm_avg": 45, "trip_speed_avg": 98, "estado": "TRIPPING", "horas_operacion": 0, "horas_standby": 12, "evento": "STANDBY_CLIMA"},
+        
+        {"pozo_id": "P-001", "fecha": "2025-02-10", "hook_load_avg": 19.2, "hook_load_max": 23.5, "wob_avg": 2.8, "torque_avg": 550, "annular_pressure_avg": 65, "pump_pressure_avg": 850, "spm_avg": 55, "trip_speed_avg": 160, "estado": "TRIPPING", "horas_operacion": 8, "horas_standby": 0},
+        {"pozo_id": "P-001", "fecha": "2025-02-11", "hook_load_avg": 20.1, "hook_load_max": 24.8, "wob_avg": 3.1, "torque_avg": 580, "annular_pressure_avg": 68, "pump_pressure_avg": 880, "spm_avg": 53, "trip_speed_avg": 155, "estado": "TRIPPING", "horas_operacion": 10, "horas_standby": 0},
+        {"pozo_id": "P-001", "fecha": "2025-02-12", "hook_load_avg": 19.8, "hook_load_max": 24.2, "wob_avg": 3.0, "torque_avg": 560, "annular_pressure_avg": 62, "pump_pressure_avg": 860, "spm_avg": 54, "trip_speed_avg": 158, "estado": "TRIPPING", "horas_operacion": 10, "horas_standby": 0},
+        
+        {"pozo_id": "A-321", "fecha": "2025-02-10", "hook_load_avg": 18.5, "hook_load_max": 22.1, "wob_avg": 2.5, "torque_avg": 520, "annular_pressure_avg": 58, "pump_pressure_avg": 820, "spm_avg": 58, "trip_speed_avg": 175, "estado": "TRIPPING", "horas_operacion": 6, "horas_standby": 0},
+        {"pozo_id": "A-321", "fecha": "2025-02-11", "hook_load_avg": 19.2, "hook_load_max": 23.8, "wob_avg": 2.9, "torque_avg": 550, "annular_pressure_avg": 62, "pump_pressure_avg": 850, "spm_avg": 56, "trip_speed_avg": 168, "estado": "TRIPPING", "horas_operacion": 8, "horas_standby": 0},
+        {"pozo_id": "A-321", "fecha": "2025-02-12", "hook_load_avg": 18.8, "hook_load_max": 22.5, "wob_avg": 2.6, "torque_avg": 530, "annular_pressure_avg": 60, "pump_pressure_avg": 840, "spm_avg": 57, "trip_speed_avg": 172, "estado": "TRIPPING", "horas_operacion": 8, "horas_standby": 0}
+    ],
+    "config": {"version": "1.0"}
+}

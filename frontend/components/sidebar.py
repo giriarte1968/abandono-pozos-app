@@ -66,7 +66,10 @@ def render_sidebar():
             except Exception as e:
                 st.error(f"Error de conectividad: {e}")
 
-            st.divider()
+        if st.button("Análisis Operacional", use_container_width=True, type="primary" if current_page == 'Análisis Operacional' else "secondary"):
+            st.session_state['current_page'] = 'Análisis Operacional'
+            st.rerun()
+        st.divider()
         log_timing(f"📋 [SIDEBAR] Conectividad renderizada ({time.time() - t_conn:.3f}s)")
 
         # 3. Menú de Navegación

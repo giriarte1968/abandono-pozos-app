@@ -138,6 +138,10 @@ def main_router():
         from views import dashboard_eficiencia_view
         dashboard_eficiencia_view.render_dashboard_eficiencia()
     
+    elif page == 'Análisis Operacional':
+        from views import analisis_operacional_view
+        analisis_operacional_view.render_analisis_operacional()
+    
     else:
         st.warning(f"Página no encontrada: {page}")
 
