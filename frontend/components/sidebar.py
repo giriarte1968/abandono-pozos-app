@@ -66,10 +66,7 @@ def render_sidebar():
             except Exception as e:
                 st.error(f"Error de conectividad: {e}")
 
-        if st.button("Análisis Operacional", use_container_width=True, type="primary" if current_page == 'Análisis Operacional' else "secondary"):
-            st.session_state['current_page'] = 'Análisis Operacional'
-            st.rerun()
-        st.divider()
+            st.divider()
         log_timing(f"📋 [SIDEBAR] Conectividad renderizada ({time.time() - t_conn:.3f}s)")
 
         # 3. Menú de Navegación
@@ -136,6 +133,9 @@ def render_menu_native(role, current_page):
             st.rerun()
         if st.button("Documentación", use_container_width=True, type="primary" if current_page == 'Documentación' else "secondary"):
             st.session_state['current_page'] = 'Documentación'
+            st.rerun()
+        if st.button("Análisis Operacional", use_container_width=True, type="primary" if current_page == 'Análisis Operacional' else "secondary"):
+            st.session_state['current_page'] = 'Análisis Operacional'
             st.rerun()
         st.divider()
     
