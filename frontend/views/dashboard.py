@@ -86,7 +86,8 @@ def render_view():
     with col6:
         st.metric("Avance Financiero", f"{kpis_fin['avance_financiero_pct']:.1f}%")
     with col7:
-        st.metric("Días Cobertura Caja", f"{kpis_fin['dias_cobertura_caja']:.0f}")
+        dias_cobertura = kpis_fin.get('dias_cobertura', 0)
+        st.metric("Días Cobertura Caja", f"{dias_cobertura:.0f}")
     with col8:
         st.metric("Bloqueados", stats.get('bloqueados', 0), delta_color="inverse")
     
